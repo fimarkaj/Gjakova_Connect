@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/components/AuthProvider";
 import {
   CATEGORIES,
   STAFF_STATUSES,
@@ -17,9 +17,22 @@ import { formatClock, formatDate, timeAgo } from "@/lib/time";
 import AdminNav from "./AdminNav";
 import { InlineError, TableSkeleton } from "./AdminStates";
 
+const AdminMap = dynamic(() => import("./AdminMap"), {
+  ssr: false,
+  loading: () => <div className="pin-map-hint">Duke ngarkuar hartën…</div>,
+});
+
 type SortKey = "newest" | "urgency";
+type View = "table" | "map";
 
 const NO_AREA = "__none__";
+
+const MAP_LEGEND: { status: ReportStatus; color: string; label: string }[] = [
+  { status: "submitted", color: "var(--slate)", label: "Pranuar" },
+  { status: "in_progress", color: "var(--amber)", label: "Në proces" },
+  { status: "resolved", color: "var(--olive)", label: "Zgjidhur" },
+  { status: "reopened", color: "var(--clay)", label: "Rihapur" },
+];
 
 function UrgencyPill({ urgency }: { urgency: string | null }) {
   const u = urgency ? URGENCY_LABELS[urgency] : undefined;
@@ -33,8 +46,6 @@ function StatusPill({ status }: { status: ReportStatus }) {
 }
 
 export default function AdminClient() {
-  const { session } = useAuth();
-
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -44,6 +55,7 @@ export default function AdminClient() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [areaFilter, setAreaFilter] = useState("");
   const [sort, setSort] = useState<SortKey>("newest");
+  const [view, setView] = useState<View>("table");
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [statusBusy, setStatusBusy] = useState(false);
@@ -68,6 +80,36 @@ export default function AdminClient() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Live updates: new submissions and status changes land here without a manual
+  // refresh. The refresh button stays as a fallback if the socket ever drops.
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-reports-changes")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "reports" },
+        (payload) => {
+          const incoming = payload.new as Report;
+          setReports((prev) =>
+            prev.some((r) => r.id === incoming.id) ? prev : [incoming, ...prev]
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "reports" },
+        (payload) => {
+          const updated = payload.new as Report;
+          setReports((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const areaOptions = useMemo(() => {
     const names = new Set(Object.keys(AREA_WEIGHTS));
@@ -118,7 +160,7 @@ export default function AdminClient() {
       const res = await fetch(`/api/admin/reports/${report.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, accessToken: session?.access_token }),
+        body: JSON.stringify({ status }),
       });
       const body = await res.json();
       if (!res.ok) {
@@ -144,6 +186,23 @@ export default function AdminClient() {
         </div>
 
         <AdminNav />
+
+        <div className="filter-row">
+          <button
+            type="button"
+            className={`filter-chip${view === "table" ? " selected" : ""}`}
+            onClick={() => setView("table")}
+          >
+            Tabela
+          </button>
+          <button
+            type="button"
+            className={`filter-chip${view === "map" ? " selected" : ""}`}
+            onClick={() => setView("map")}
+          >
+            Harta
+          </button>
+        </div>
 
         <div className="admin-toolbar">
           <label className="admin-control">
@@ -224,6 +283,20 @@ export default function AdminClient() {
               </button>
             )}
           </div>
+        ) : view === "map" ? (
+          <>
+            <div className="admin-map-frame">
+              <AdminMap reports={filtered} onPinClick={openDetail} />
+            </div>
+            <div className="admin-map-legend">
+              {MAP_LEGEND.map((l) => (
+                <span key={l.status}>
+                  <i style={{ background: l.color }} />
+                  {l.label}
+                </span>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="admin-table-wrap">
             <table className="admin-table">

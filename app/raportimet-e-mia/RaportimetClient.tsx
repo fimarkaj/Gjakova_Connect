@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/components/AuthProvider";
+import { getMyTickets } from "@/lib/my-tickets";
 import { CATEGORIES, STATUS_LABELS, categoryLabel, isDone } from "@/lib/types";
 import type { Report } from "@/lib/types";
 import { timeAgo } from "@/lib/time";
@@ -43,14 +43,13 @@ function EmptyIcon() {
 }
 
 export default function RaportimetClient() {
-  const { user, session, loading: authLoading } = useAuth();
-
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [onlyMine, setOnlyMine] = useState(false);
+  const [myTickets, setMyTickets] = useState<string[]>([]);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [verifiedTicket, setVerifiedTicket] = useState<{ reportId: string; ticketCode: string } | null>(
     null
@@ -77,8 +76,8 @@ export default function RaportimetClient() {
   }, []);
 
   useEffect(() => {
-    if (onlyMine && !user) setOnlyMine(false);
-  }, [user, onlyMine]);
+    setMyTickets(getMyTickets());
+  }, []);
 
   const term = search.trim().toLowerCase();
 
@@ -90,7 +89,7 @@ export default function RaportimetClient() {
 
   const filtered = useMemo(() => {
     return reports.filter((r) => {
-      if (onlyMine && user && r.reporter_id !== user.id) return false;
+      if (onlyMine && !myTickets.includes(r.ticket_code)) return false;
       if (categories.length && (!r.category || !categories.includes(r.category))) return false;
       if (statusFilter === "pending" && isDone(r.status)) return false;
       if (statusFilter === "done" && !isDone(r.status)) return false;
@@ -102,7 +101,7 @@ export default function RaportimetClient() {
       }
       return true;
     });
-  }, [reports, onlyMine, user, categories, statusFilter, term]);
+  }, [reports, onlyMine, myTickets, categories, statusFilter, term]);
 
   function toggleCategory(id: string) {
     setCategories((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
@@ -116,18 +115,18 @@ export default function RaportimetClient() {
   }
 
   async function handleConfirm(report: Report, action: "confirm" | "reopen") {
+    const ticketCode = myTickets.includes(report.ticket_code)
+      ? report.ticket_code
+      : verifiedTicket?.reportId === report.id
+        ? verifiedTicket.ticketCode
+        : undefined;
     setConfirmBusy(report.id);
     setConfirmError(null);
     try {
       const res = await fetch("/api/reports/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: report.id,
-          action,
-          ticketCode: verifiedTicket?.reportId === report.id ? verifiedTicket.ticketCode : undefined,
-          accessToken: session?.access_token,
-        }),
+        body: JSON.stringify({ id: report.id, action, ticketCode }),
       });
       const body = await res.json();
       if (!res.ok) {
@@ -156,27 +155,25 @@ export default function RaportimetClient() {
           </p>
         </div>
 
-        {!authLoading && user && (
-          <div className="mine-toggle-row">
-            <button
-              type="button"
-              className={`filter-chip${!onlyMine ? " selected" : ""}`}
-              onClick={() => setOnlyMine(false)}
-            >
-              Të gjitha raportimet
-            </button>
-            <button
-              type="button"
-              className={`filter-chip${onlyMine ? " selected" : ""}`}
-              onClick={() => setOnlyMine(true)}
-            >
-              Vetëm të miat
-            </button>
-          </div>
-        )}
-        {!authLoading && !user && (
+        <div className="mine-toggle-row">
+          <button
+            type="button"
+            className={`filter-chip${!onlyMine ? " selected" : ""}`}
+            onClick={() => setOnlyMine(false)}
+          >
+            Të gjitha raportimet
+          </button>
+          <button
+            type="button"
+            className={`filter-chip${onlyMine ? " selected" : ""}`}
+            onClick={() => setOnlyMine(true)}
+          >
+            Vetëm të miat
+          </button>
+        </div>
+        {onlyMine && myTickets.length === 0 && (
           <div className="mine-toggle-note">
-            <Link href="/login">Hyr</Link> për të ndjekur vetëm raportimet e tua.
+            Ende nuk ke raportuar asgjë nga ky shfletues.
           </div>
         )}
 
@@ -265,7 +262,7 @@ export default function RaportimetClient() {
                   const st = STATUS_LABELS[r.status];
                   const canConfirm =
                     r.status === "resolved" &&
-                    ((user && r.reporter_id === user.id) || verifiedTicket?.reportId === r.id);
+                    (myTickets.includes(r.ticket_code) || verifiedTicket?.reportId === r.id);
                   return (
                     <div
                       key={r.id}

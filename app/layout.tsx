@@ -3,7 +3,6 @@ import { Fraunces, Manrope } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { AuthProvider } from "@/components/AuthProvider";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -39,11 +38,9 @@ export default function RootLayout({
   return (
     <html lang="sq" className={`${fraunces.variable} ${manrope.variable}`}>
       <body className="stonepattern">
-        <AuthProvider>
-          <Header />
-          <main id="top">{children}</main>
-          <Footer />
-        </AuthProvider>
+        <Header />
+        <main id="top">{children}</main>
+        <Footer />
       </body>
     </html>
   );

@@ -37,6 +37,7 @@ export type NewReportForDupCheck = {
   description: string;
   latitude: number | null;
   longitude: number | null;
+  area: string | null;
 };
 
 export type DuplicateMatch = {
@@ -45,10 +46,10 @@ export type DuplicateMatch = {
   similarity: number;
 };
 
-// Reports within this radius are treated as "the same area" for duplicate
-// detection — the `area` text column exists in schema.sql but isn't
-// populated by the submission form, so lat/lng proximity is the only
-// reliable location signal we actually have at insert time.
+// Duplicate detection scopes candidates by `area` first — it's a cleaner
+// signal than raw distance since it matches how staff actually triage by
+// neighborhood. Reports within this radius are only used as a fallback for
+// candidates that predate the `area` column being populated.
 const NEARBY_RADIUS_METERS = 250;
 const DUPLICATE_SIMILARITY_THRESHOLD = 0.85;
 const LOOKBACK_DAYS = 90;
@@ -65,7 +66,10 @@ function logUsage(label: string, usage: OpenAIUsage) {
 
 /**
  * Classifies a report's description into one of the app's category ids and
- * an urgency level using gpt-4o-mini with a strict JSON schema response.
+ * an urgency level with a strict JSON schema response. Uses gpt-5-mini
+ * (confirmed available and working on the configured AI_BASE_URL proxy) —
+ * not gpt-4o-mini as originally specced, but verified to return
+ * well-formed, schema-conformant classifications.
  */
 export async function classifyReport(description: string): Promise<ClassificationResult> {
   const truncated = description.slice(0, MAX_DESCRIPTION_CHARS);
@@ -172,8 +176,10 @@ function parseEmbedding(value: unknown): number[] | null {
 /**
  * Embeds the new report's description, stores it in report_embeddings, and
  * checks it against open reports (submitted/in_progress) from the last 90
- * days within ~250m. Returns the closest match above the similarity
- * threshold, or null if none.
+ * days. Candidates are scoped to the same `area` as the new report; a
+ * candidate missing `area` (an old row from before that column was
+ * populated) falls back to the ~250m radius check instead. Returns the
+ * closest match above the similarity threshold, or null if none.
  */
 export async function findDuplicates(newReport: NewReportForDupCheck): Promise<DuplicateMatch | null> {
   const embedding = await embedDescription(newReport.description);
@@ -186,13 +192,11 @@ export async function findDuplicates(newReport: NewReportForDupCheck): Promise<D
     console.error("findDuplicates: failed to store embedding", embedInsertError);
   }
 
-  if (newReport.latitude == null || newReport.longitude == null) return null;
-
   const since = new Date(Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
   const { data: candidates, error } = await supabaseAdmin
     .from("reports")
-    .select("id, ticket_code, latitude, longitude, report_embeddings(embedding)")
+    .select("id, ticket_code, latitude, longitude, area, report_embeddings(embedding)")
     .in("status", ["submitted", "in_progress"])
     .neq("id", newReport.id)
     .gte("created_at", since);
@@ -209,17 +213,32 @@ export async function findDuplicates(newReport: NewReportForDupCheck): Promise<D
     ticket_code: string;
     latitude: number | null;
     longitude: number | null;
+    area: string | null;
     report_embeddings: { embedding: unknown } | { embedding: unknown }[] | null;
   }>) {
-    if (candidate.latitude == null || candidate.longitude == null) continue;
+    const sameArea = newReport.area != null && candidate.area != null && candidate.area === newReport.area;
 
-    const distance = haversineMeters(
-      newReport.latitude,
-      newReport.longitude,
-      candidate.latitude,
-      candidate.longitude
-    );
-    if (distance > NEARBY_RADIUS_METERS) continue;
+    if (!sameArea) {
+      // Both sides have a known area and it differs — not the same place,
+      // skip without falling back to distance.
+      if (newReport.area != null && candidate.area != null) continue;
+
+      if (
+        newReport.latitude == null ||
+        newReport.longitude == null ||
+        candidate.latitude == null ||
+        candidate.longitude == null
+      ) {
+        continue;
+      }
+      const distance = haversineMeters(
+        newReport.latitude,
+        newReport.longitude,
+        candidate.latitude,
+        candidate.longitude
+      );
+      if (distance > NEARBY_RADIUS_METERS) continue;
+    }
 
     const embeddingRow = Array.isArray(candidate.report_embeddings)
       ? candidate.report_embeddings[0]

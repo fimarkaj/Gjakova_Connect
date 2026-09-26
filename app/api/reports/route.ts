@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { classifyReport, findDuplicates, AIBudgetExceededError } from "@/lib/ai";
+import { CATEGORIES } from "@/lib/types";
+import { AREA_WEIGHTS } from "@/lib/silence-map";
+
+const VALID_CATEGORY_IDS = new Set(CATEGORIES.map((c) => c.id));
+const VALID_AREAS = new Set(Object.keys(AREA_WEIGHTS));
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -8,14 +13,25 @@ export async function POST(req: NextRequest) {
   const latitude: number | undefined = body?.latitude;
   const longitude: number | undefined = body?.longitude;
   const photoUrl: string | undefined = body?.photoUrl;
+  const category: string | undefined = body?.category;
+  const area: string | undefined = body?.area;
 
-  if (!description || latitude == null || longitude == null || !photoUrl) {
+  if (
+    !description ||
+    latitude == null ||
+    longitude == null ||
+    !photoUrl ||
+    !category ||
+    !area ||
+    !VALID_CATEGORY_IDS.has(category) ||
+    !VALID_AREAS.has(area)
+  ) {
     return NextResponse.json({ error: "Kërkesë e pavlefshme." }, { status: 400 });
   }
 
   const { data: inserted, error: insertError } = await supabaseAdmin
     .from("reports")
-    .insert({ description, latitude, longitude, photo_url: photoUrl })
+    .insert({ description, latitude, longitude, photo_url: photoUrl, category, area })
     .select()
     .single();
 
@@ -29,7 +45,7 @@ export async function POST(req: NextRequest) {
   try {
     const [classification, duplicate] = await Promise.all([
       classifyReport(description),
-      findDuplicates({ id: inserted.id, description, latitude, longitude }),
+      findDuplicates({ id: inserted.id, description, latitude, longitude, area: inserted.area }),
     ]);
 
     const { data: updated, error: updateError } = await supabaseAdmin

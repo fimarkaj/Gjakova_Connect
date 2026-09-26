@@ -20,7 +20,7 @@ async function main() {
   const baseLat = 42.3803;
   const baseLng = 20.4308;
 
-  async function insertFakeReport(description: string, offset: number) {
+  async function insertFakeReport(description: string, offset: number, area: string) {
     const { data, error } = await supabaseAdmin
       .from("reports")
       .insert({
@@ -28,6 +28,7 @@ async function main() {
         latitude: baseLat + offset,
         longitude: baseLng + offset,
         photo_url: "https://example.com/fake.jpg",
+        area,
       })
       .select()
       .single();
@@ -38,7 +39,8 @@ async function main() {
   console.log("--- Inserting report 1 ---");
   const r1 = await insertFakeReport(
     "Ka nje gropë të madhe në rrugën 'Ndre Mjeda', afër kryqëzimit me shkollën. Është shumë e rrezikshme për makinat.",
-    0
+    0,
+    "Qendra"
   );
   console.log("Inserted:", r1.ticket_code, r1.id);
 
@@ -49,6 +51,7 @@ async function main() {
     description: r1.description,
     latitude: r1.latitude,
     longitude: r1.longitude,
+    area: r1.area,
   });
   console.log("Duplicate check 1 (expect null):", dup1);
 
@@ -57,10 +60,11 @@ async function main() {
     .update({ category: c1.category, urgency: c1.urgency, duplicate_of: dup1?.reportId ?? null })
     .eq("id", r1.id);
 
-  console.log("\n--- Inserting report 2 (same street, same problem) ---");
+  console.log("\n--- Inserting report 2 (same street, same problem, same area) ---");
   const r2 = await insertFakeReport(
     "Gropë e madhe në rrugën Ndre Mjeda, pranë shkollës, shumë e rrezikshme, mund të dëmtojë makinat.",
-    0.0005
+    0.0005,
+    "Qendra"
   );
   console.log("Inserted:", r2.ticket_code, r2.id);
 
@@ -71,6 +75,7 @@ async function main() {
     description: r2.description,
     latitude: r2.latitude,
     longitude: r2.longitude,
+    area: r2.area,
   });
   console.log("Duplicate check 2 (expect match on report 1):", dup2);
 

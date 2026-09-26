@@ -2,22 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import LogoMark from "./LogoMark";
-import { useAuth } from "./AuthProvider";
-import { supabase } from "@/lib/supabase";
 
 export default function Header() {
   const pathname = usePathname();
-  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { user, loading } = useAuth();
-
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    setMenuOpen(false);
-    router.push("/");
-  }
 
   return (
     <header>
@@ -47,16 +37,6 @@ export default function Header() {
             Raportimet e Mia
           </Link>
         </nav>
-
-        {!loading && user ? (
-          <button type="button" className="nav-cta" onClick={handleLogout}>
-            Dil
-          </button>
-        ) : (
-          <Link href="/login" className="nav-cta" onClick={() => setMenuOpen(false)}>
-            Hyrje
-          </Link>
-        )}
 
         <button
           type="button"

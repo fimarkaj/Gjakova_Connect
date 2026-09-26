@@ -6,15 +6,14 @@ export async function POST(req: NextRequest) {
   const id: string | undefined = body?.id;
   const action: string | undefined = body?.action;
   const ticketCode: string | undefined = body?.ticketCode;
-  const accessToken: string | undefined = body?.accessToken;
 
-  if (!id || (action !== "confirm" && action !== "reopen")) {
+  if (!id || (action !== "confirm" && action !== "reopen") || !ticketCode) {
     return NextResponse.json({ error: "Kërkesë e pavlefshme." }, { status: 400 });
   }
 
   const { data: report, error: fetchError } = await supabaseAdmin
     .from("reports")
-    .select("id, ticket_code, status, reporter_id")
+    .select("id, ticket_code, status")
     .eq("id", id)
     .single();
 
@@ -24,20 +23,7 @@ export async function POST(req: NextRequest) {
   if (report.status !== "resolved") {
     return NextResponse.json({ error: "Raportimi nuk është në statusin 'Zgjidhur'." }, { status: 400 });
   }
-
-  let authorized = false;
-
-  if (accessToken) {
-    const { data: userData } = await supabaseAdmin.auth.getUser(accessToken);
-    if (userData.user && report.reporter_id && userData.user.id === report.reporter_id) {
-      authorized = true;
-    }
-  }
-  if (!authorized && ticketCode && ticketCode.trim().toLowerCase() === report.ticket_code.toLowerCase()) {
-    authorized = true;
-  }
-
-  if (!authorized) {
+  if (ticketCode.trim().toLowerCase() !== report.ticket_code.toLowerCase()) {
     return NextResponse.json({ error: "Nuk je i autorizuar për këtë veprim." }, { status: 403 });
   }
 

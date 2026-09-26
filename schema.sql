@@ -17,10 +17,13 @@ create table if not exists public.reports (
   longitude double precision,
   photo_url text,
   duplicate_of uuid references public.reports(id),
-  reporter_id uuid references auth.users(id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Drop the reporter_id/auth link from any earlier deployment — reports are anonymous,
+-- the ticket_code is the citizen's only way to track a submission.
+alter table public.reports drop column if exists reporter_id;
 
 -- Auto-generate ticket codes like GJK-1001, GJK-1002, ...
 create sequence if not exists public.reports_ticket_seq start with 1001;
@@ -63,6 +66,18 @@ create trigger trg_reports_updated_at
 create index if not exists reports_status_idx on public.reports(status);
 create index if not exists reports_created_at_idx on public.reports(created_at desc);
 
+-- Enable Supabase Realtime (postgres_changes) on reports so /admin can live-update
+-- on new submissions and status changes without a manual refresh.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'reports'
+  ) then
+    alter publication supabase_realtime add table public.reports;
+  end if;
+end $$;
+
 -- Row Level Security: public read (feed is public), inserts allowed for anon/auth,
 -- updates restricted to service role (admin/staff tooling) until an admin role is modeled.
 alter table public.reports enable row level security;
@@ -88,10 +103,10 @@ create policy "Public read for report photos"
   on storage.objects for select
   using (bucket_id = 'report-photos');
 
+-- No anon/auth insert policy: photo uploads are handled only by the server
+-- (/api/reports/photo, via the service_role key) so every photo is re-encoded
+-- and stripped of EXIF metadata before it lands in the bucket.
 drop policy if exists "Anyone can upload report photos" on storage.objects;
-create policy "Anyone can upload report photos"
-  on storage.objects for insert
-  with check (bucket_id = 'report-photos');
 
 -- ---------- AI pipeline: duplicate detection embeddings ----------
 -- Requires pgvector. On Supabase this extension ships in the "extensions" schema.

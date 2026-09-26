@@ -17,7 +17,6 @@ export type Report = {
   longitude: number | null;
   photo_url: string | null;
   duplicate_of: string | null;
-  reporter_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -62,6 +61,15 @@ export function statusPinColor(status: ReportStatus): string {
   if (status === "resolved" || status === "confirmed_resolved") return "var(--olive)";
   if (status === "in_progress" || status === "reopened") return "var(--amber)";
   return "var(--clay)";
+}
+
+// Pin colors for the /admin map — unlike statusPinColor, staff need reopened
+// (a citizen rejecting a resolution) visually distinct from in_progress.
+export function adminPinColor(status: ReportStatus): string {
+  if (status === "resolved" || status === "confirmed_resolved") return "var(--olive)";
+  if (status === "in_progress") return "var(--amber)";
+  if (status === "reopened") return "var(--clay)";
+  return "var(--slate)";
 }
 
 export function isDone(status: ReportStatus): boolean {
