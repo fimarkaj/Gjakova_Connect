@@ -379,9 +379,12 @@ nav.links a.active {
 .hero-art {
   position: relative;
 }
-.hero-art svg {
+.hero-art img {
   width: 100%;
-  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-m);
+  box-shadow: 0 24px 60px rgba(20, 15, 10, 0.18);
 }
 
 /* ---------- section shell ---------- */
