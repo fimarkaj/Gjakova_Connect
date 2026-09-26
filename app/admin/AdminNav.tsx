@@ -16,6 +16,12 @@ export default function AdminNav() {
       >
         Harta e heshtjes
       </Link>
+      <Link
+        href="/admin/chronic-issues"
+        className={`filter-chip${pathname === "/admin/chronic-issues" ? " selected" : ""}`}
+      >
+        Çështje kronike
+      </Link>
     </div>
   );
 }

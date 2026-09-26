@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { sendReportStatusEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest) {
 
   const { data: report, error: fetchError } = await supabaseAdmin
     .from("reports")
-    .select("id, ticket_code, status")
+    .select("id, ticket_code, status, notify_email")
     .eq("id", id)
     .single();
 
@@ -38,6 +39,16 @@ export async function POST(req: NextRequest) {
 
   if (updateError) {
     return NextResponse.json({ error: "Diçka shkoi keq — provo përsëri." }, { status: 500 });
+  }
+
+  if (report.notify_email) {
+    const trackingUrl = `${new URL(req.url).origin}/raportimet-e-mia?ticket=${encodeURIComponent(report.ticket_code)}`;
+    await sendReportStatusEmail({
+      to: report.notify_email,
+      ticketCode: report.ticket_code,
+      status: nextStatus,
+      trackingUrl,
+    });
   }
 
   return NextResponse.json({ report: updated });

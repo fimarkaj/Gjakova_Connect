@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { getMyTickets } from "@/lib/my-tickets";
-import { CATEGORIES, STATUS_LABELS, categoryLabel, isDone } from "@/lib/types";
+import { CATEGORIES, PUBLIC_REPORT_COLUMNS, STATUS_LABELS, categoryLabel, isDone } from "@/lib/types";
 import type { Report } from "@/lib/types";
 import { timeAgo } from "@/lib/time";
 import CategoryIcon from "./CategoryIcon";
@@ -57,13 +58,18 @@ export default function RaportimetClient() {
   const [confirmBusy, setConfirmBusy] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<{ id: string; message: string } | null>(null);
 
+  const [ticketQuery, setTicketQuery] = useState("");
+  const [ticketNotFound, setTicketNotFound] = useState(false);
+
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const searchParams = useSearchParams();
+  const ticketDeepLinkHandled = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     supabase
       .from("reports")
-      .select("*")
+      .select(PUBLIC_REPORT_COLUMNS)
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
         if (cancelled) return;
@@ -114,6 +120,36 @@ export default function RaportimetClient() {
     setTimeout(() => setHighlightId((current) => (current === id ? null : current)), 1600);
   }
 
+  // Looks up a ticket code across ALL reports (not just this browser's
+  // localStorage list) and clears the other filters so the match is
+  // guaranteed to be visible, regardless of which category/status was active.
+  function lookupTicket(code: string) {
+    const normalized = code.trim().toLowerCase();
+    if (!normalized) return;
+    const match = reports.find((r) => r.ticket_code.toLowerCase() === normalized);
+    if (!match) {
+      setTicketNotFound(true);
+      return;
+    }
+    setTicketNotFound(false);
+    setOnlyMine(false);
+    setCategories([]);
+    setStatusFilter("all");
+    setSearch(match.ticket_code);
+    setVerifiedTicket({ reportId: match.id, ticketCode: match.ticket_code });
+    requestAnimationFrame(() => handlePinClick(match.id));
+  }
+
+  useEffect(() => {
+    if (ticketDeepLinkHandled.current || reports.length === 0) return;
+    const ticket = searchParams.get("ticket");
+    if (!ticket) return;
+    ticketDeepLinkHandled.current = true;
+    setTicketQuery(ticket);
+    lookupTicket(ticket);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reports, searchParams]);
+
   async function handleConfirm(report: Report, action: "confirm" | "reopen") {
     const ticketCode = myTickets.includes(report.ticket_code)
       ? report.ticket_code
@@ -153,6 +189,31 @@ export default function RaportimetClient() {
             Çdo pikë në hartë është një raportim i qytetarëve. Kliko një pikë ose kërko për ta gjetur
             raportimin tënd.
           </p>
+        </div>
+
+        <div className="field ticket-lookup">
+          <label htmlFor="ticket-lookup-input">Kërko me numër bileta</label>
+          <div className="loc-row">
+            <input
+              id="ticket-lookup-input"
+              type="text"
+              placeholder="p.sh. GJK-1001"
+              value={ticketQuery}
+              onChange={(e) => {
+                setTicketQuery(e.target.value);
+                setTicketNotFound(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") lookupTicket(ticketQuery);
+              }}
+            />
+            <button type="button" className="btn-geo" onClick={() => lookupTicket(ticketQuery)}>
+              Kërko
+            </button>
+          </div>
+          {ticketNotFound && (
+            <div className="geo-status">Nuk u gjet asnjë raportim me këtë kod bilete.</div>
+          )}
         </div>
 
         <div className="mine-toggle-row">

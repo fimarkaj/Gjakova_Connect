@@ -17,9 +17,17 @@ export type Report = {
   longitude: number | null;
   photo_url: string | null;
   duplicate_of: string | null;
+  notify_email: string | null;
   created_at: string;
   updated_at: string;
 };
+
+// Columns safe to expose to the anon/authenticated Supabase roles — excludes
+// notify_email (citizen PII), which only server routes (supabaseAdmin) read.
+// Column-level privileges in schema.sql enforce this at the database too, so
+// this list must stay in sync with that migration.
+export const PUBLIC_REPORT_COLUMNS =
+  "id, ticket_code, description, category, urgency, status, area, latitude, longitude, photo_url, duplicate_of, created_at, updated_at";
 
 export const CATEGORIES: { id: string; label: string }[] = [
   { id: "rruge", label: "Rrugë & Trotuare" },

@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
   CATEGORIES,
+  PUBLIC_REPORT_COLUMNS,
   STAFF_STATUSES,
   STATUS_LABELS,
   URGENCY_LABELS,
@@ -61,12 +63,25 @@ export default function AdminClient() {
   const [statusBusy, setStatusBusy] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
 
+  // notify_email is PII, excluded from the anon-key list fetch above — loaded
+  // separately per report (via the admin-gated API route) only when its
+  // detail panel is open.
+  const [detailEmail, setDetailEmail] = useState<{ reportId: string; notifyEmail: string | null } | null>(
+    null
+  );
+  const [notifyBusy, setNotifyBusy] = useState(false);
+  const [notifyError, setNotifyError] = useState<string | null>(null);
+  const [notifySent, setNotifySent] = useState<string | null>(null);
+
+  const searchParams = useSearchParams();
+  const deepLinkHandled = useRef(false);
+
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
     const { data, error } = await supabase
       .from("reports")
-      .select("*")
+      .select(PUBLIC_REPORT_COLUMNS)
       .order("created_at", { ascending: false });
     if (error || !data) {
       setLoadError("Raportimet nuk u ngarkuan.");
@@ -111,6 +126,17 @@ export default function AdminClient() {
     };
   }, []);
 
+  // Supports links like /admin/chronic-issues linking a ticket straight into
+  // its detail panel here. Only fires once — reopening after the user closes
+  // it would be surprising.
+  useEffect(() => {
+    if (deepLinkHandled.current || reports.length === 0) return;
+    const reportId = searchParams.get("report");
+    if (!reportId) return;
+    deepLinkHandled.current = true;
+    if (reports.some((r) => r.id === reportId)) openDetail(reportId);
+  }, [reports, searchParams]);
+
   const areaOptions = useMemo(() => {
     const names = new Set(Object.keys(AREA_WEIGHTS));
     for (const r of reports) if (r.area) names.add(r.area);
@@ -150,6 +176,42 @@ export default function AdminClient() {
   function openDetail(id: string) {
     setSelectedId(id);
     setStatusError(null);
+    setNotifyError(null);
+    setNotifySent(null);
+    setDetailEmail(null);
+    fetch(`/api/admin/reports/${id}`)
+      .then((res) => res.json())
+      .then((body) => {
+        if (body?.report) {
+          setDetailEmail({ reportId: id, notifyEmail: body.report.notify_email ?? null });
+        }
+      })
+      .catch(() => {
+        // Detail panel still works without it — the notify button just stays hidden.
+      });
+  }
+
+  async function sendManualNotify(report: Report, message?: string) {
+    setNotifyBusy(true);
+    setNotifyError(null);
+    setNotifySent(null);
+    try {
+      const res = await fetch(`/api/admin/reports/${report.id}/notify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setNotifyError(body.error || "Diçka shkoi keq.");
+        return;
+      }
+      setNotifySent(body.demo ? "U regjistrua në konsolë (mënyra demo)." : "Email-i u dërgua.");
+    } catch {
+      setNotifyError("Diçka shkoi keq — provo përsëri.");
+    } finally {
+      setNotifyBusy(false);
+    }
   }
 
   async function changeStatus(report: Report, status: ReportStatus) {
@@ -356,6 +418,11 @@ export default function AdminClient() {
           onClose={closeDetail}
           onOpen={openDetail}
           onChangeStatus={(s) => changeStatus(selected, s)}
+          notifyEmail={detailEmail?.reportId === selected.id ? detailEmail.notifyEmail : null}
+          notifyBusy={notifyBusy}
+          notifyError={notifyError}
+          notifySent={notifySent}
+          onSendNotify={(message) => sendManualNotify(selected, message)}
         />
       )}
     </section>
@@ -370,6 +437,11 @@ function ReportDetail({
   onClose,
   onOpen,
   onChangeStatus,
+  notifyEmail,
+  notifyBusy,
+  notifyError,
+  notifySent,
+  onSendNotify,
 }: {
   report: Report;
   duplicateOf: Report | null;
@@ -378,8 +450,15 @@ function ReportDetail({
   onClose: () => void;
   onOpen: (id: string) => void;
   onChangeStatus: (status: ReportStatus) => void;
+  notifyEmail: string | null;
+  notifyBusy: boolean;
+  notifyError: string | null;
+  notifySent: string | null;
+  onSendNotify: (message?: string) => void;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [notifyMessage, setNotifyMessage] = useState("");
+  const [notifyOpen, setNotifyOpen] = useState(false);
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -476,6 +555,40 @@ function ReportDetail({
           {busy && <div className="geo-status">Duke ruajtur…</div>}
           {error && <div className="confirm-resolved-error detail-error">{error}</div>}
         </div>
+
+        {notifyEmail && (
+          <div className="field detail-notify">
+            <label>
+              Njoftim me email <span className="hint">{notifyEmail}</span>
+            </label>
+            {notifyOpen ? (
+              <>
+                <textarea
+                  rows={2}
+                  placeholder="Mesazh i shkurtër opsional (nëse bosh, dërgohet njoftimi standard i statusit)"
+                  value={notifyMessage}
+                  onChange={(e) => setNotifyMessage(e.target.value)}
+                />
+                <div className="loc-row">
+                  <button
+                    type="button"
+                    className="btn-geo btn-geo-full"
+                    disabled={notifyBusy}
+                    onClick={() => onSendNotify(notifyMessage.trim() || undefined)}
+                  >
+                    {notifyBusy ? "Duke dërguar…" : "Dërgo"}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <button type="button" className="btn-geo btn-geo-full" onClick={() => setNotifyOpen(true)}>
+                Dërgo njoftim me email
+              </button>
+            )}
+            {notifySent && <div className="geo-status">{notifySent}</div>}
+            {notifyError && <div className="confirm-resolved-error detail-error">{notifyError}</div>}
+          </div>
+        )}
       </div>
     </div>
   );

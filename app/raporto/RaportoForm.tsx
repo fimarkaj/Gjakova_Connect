@@ -42,6 +42,7 @@ export default function RaportoForm() {
   const [geoStatus, setGeoStatus] = useState("");
 
   const [description, setDescription] = useState("");
+  const [notifyEmail, setNotifyEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "" });
   const [confirmation, setConfirmation] = useState<string | null>(null);
@@ -100,8 +101,12 @@ export default function RaportoForm() {
     );
   }
 
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailTrimmed = notifyEmail.trim();
+  const emailValid = emailTrimmed.length === 0 || EMAIL_RE.test(emailTrimmed);
+
   const canSubmit = Boolean(
-    photoFile && pin && description.trim().length > 2 && !submitting
+    photoFile && pin && description.trim().length > 2 && emailValid && !submitting
   );
 
   async function handleSubmit() {
@@ -125,6 +130,7 @@ export default function RaportoForm() {
           latitude: pin.lat,
           longitude: pin.lng,
           photoUrl: photoData.photoUrl,
+          notifyEmail: emailTrimmed || undefined,
         }),
       });
       const data = await res.json();
@@ -136,6 +142,7 @@ export default function RaportoForm() {
 
       resetPhoto();
       setDescription("");
+      setNotifyEmail("");
       setPin(null);
       setFlyTo(null);
       setGeoStatus("");
@@ -172,7 +179,7 @@ export default function RaportoForm() {
         )}
 
         <div className="report-grid">
-          <div>
+          <div className="report-photo">
             <div
               id="cameraZone"
               className={`camera-zone${photoSource === "camera" && photoPreview ? " has-preview" : ""}`}
@@ -265,16 +272,7 @@ export default function RaportoForm() {
             />
           </div>
 
-          <div>
-            <div className="field auto-cat-note">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" />
-              </svg>
-              <span>
-                AI do ta kategorizojë automatikisht raportimin bazuar në përshkrimin tënd.
-              </span>
-            </div>
-
+          <div className="report-details">
             <div className="field">
               <label>
                 Vendndodhja <span className="hint">kliko në hartë për të shënuar pikën</span>
@@ -297,6 +295,15 @@ export default function RaportoForm() {
               <div className="geo-status">{geoStatus}</div>
             </div>
 
+            <div className="field auto-cat-note">
+              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" />
+              </svg>
+              <span>
+                AI do ta kategorizojë automatikisht raportimin bazuar në përshkrimin tënd.
+              </span>
+            </div>
+
             <div className="field">
               <label>
                 Përshkrimi <span className="hint">e detyrueshme</span>
@@ -308,6 +315,19 @@ export default function RaportoForm() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
+            </div>
+
+            <div className="field">
+              <label>
+                Email <span className="hint">opsionale — për t&apos;u njoftuar kur statusi ndryshon</span>
+              </label>
+              <input
+                type="email"
+                placeholder="emri@shembull.com"
+                value={notifyEmail}
+                onChange={(e) => setNotifyEmail(e.target.value)}
+              />
+              {!emailValid && <div className="geo-status">Formati i email-it nuk duket i saktë.</div>}
             </div>
 
             <button className="btn-submit" disabled={!canSubmit} onClick={handleSubmit}>

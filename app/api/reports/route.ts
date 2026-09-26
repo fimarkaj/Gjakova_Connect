@@ -8,9 +8,14 @@ export async function POST(req: NextRequest) {
   const latitude: number | undefined = body?.latitude;
   const longitude: number | undefined = body?.longitude;
   const photoUrl: string | undefined = body?.photoUrl;
+  const notifyEmailRaw: string | undefined = body?.notifyEmail;
+  const notifyEmail = notifyEmailRaw?.trim() || null;
 
   if (!description || latitude == null || longitude == null || !photoUrl) {
     return NextResponse.json({ error: "Kërkesë e pavlefshme." }, { status: 400 });
+  }
+  if (notifyEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(notifyEmail)) {
+    return NextResponse.json({ error: "Formati i email-it nuk është i vlefshëm." }, { status: 400 });
   }
 
   // category/area are no longer collected from the submitter — category is
@@ -18,7 +23,7 @@ export async function POST(req: NextRequest) {
   // falls back to a distance check when area is unset).
   const { data: inserted, error: insertError } = await supabaseAdmin
     .from("reports")
-    .insert({ description, latitude, longitude, photo_url: photoUrl })
+    .insert({ description, latitude, longitude, photo_url: photoUrl, notify_email: notifyEmail })
     .select()
     .single();
 

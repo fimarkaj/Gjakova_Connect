@@ -127,3 +127,28 @@ create index if not exists report_embeddings_embedding_idx
 -- Only the server (service_role, via supabaseAdmin) reads/writes embeddings —
 -- no public policies are defined, so RLS blocks anon/auth access entirely.
 alter table public.report_embeddings enable row level security;
+
+-- ---------- email notifications ----------
+-- Optional citizen contact email for status-change notifications. This is
+-- PII, unlike every other reports column, so it must never be readable by
+-- the anon/authenticated roles the browser uses — RLS alone can't hide a
+-- single column (it's row-scoped), so we revoke table-level SELECT and
+-- re-grant it only for the non-sensitive columns. Only supabaseAdmin
+-- (service_role, bypasses RLS/grants) reads notify_email.
+alter table public.reports add column if not exists notify_email text;
+
+revoke select on public.reports from anon, authenticated;
+grant select (
+  id, ticket_code, description, category, urgency, status, area,
+  latitude, longitude, photo_url, duplicate_of, created_at, updated_at
+) on public.reports to anon, authenticated;
+
+-- postgres_changes (Realtime) replicates full rows regardless of the column
+-- grants above — RLS gates which ROWS a subscriber sees, not which columns.
+-- Restrict the publication itself to the same safe column list (Postgres 15+,
+-- which Supabase runs) so notify_email is never replicated to any anon-key
+-- websocket subscriber, including /admin's live-update channel.
+alter publication supabase_realtime set table public.reports (
+  id, ticket_code, description, category, urgency, status, area,
+  latitude, longitude, photo_url, duplicate_of, created_at, updated_at
+);
