@@ -16,7 +16,7 @@ export default function Header() {
           <LogoMark className="brand-mark" />
           <span>
             <span className="brand-name" style={{ display: "block" }}>
-              Raporto Gjakovën
+              Gjakova Connect
             </span>
             <span className="brand-sub">Komuna e Gjakovës</span>
           </span>

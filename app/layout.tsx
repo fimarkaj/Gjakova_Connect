@@ -20,7 +20,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Raporto Gjakovën",
+  title: "Gjakova Connect",
   description:
     "Platformë qytetare për raportimin e problemeve në infrastrukturën publike të Gjakovës.",
 };

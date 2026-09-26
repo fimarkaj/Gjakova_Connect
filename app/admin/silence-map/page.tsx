@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import SilenceMapClient from "./SilenceMapClient";
 
 export const metadata: Metadata = {
-  title: "Harta e heshtjes — Raporto Gjakovën",
+  title: "Harta e heshtjes — Gjakova Connect",
   robots: { index: false },
 };
 

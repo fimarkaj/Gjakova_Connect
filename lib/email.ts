@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import { STATUS_LABELS } from "@/lib/types";
 import type { ReportStatus } from "@/lib/types";
 
-const FROM_ADDRESS = "Raporto Gjakovën <onboarding@resend.dev>";
+const FROM_ADDRESS = "Gjakova Connect <onboarding@resend.dev>";
 
 function buildStatusEmail(ticketCode: string, status: ReportStatus, trackingUrl: string, customMessage?: string) {
   const statusLabel = STATUS_LABELS[status].label;

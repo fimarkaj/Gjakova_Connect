@@ -9,7 +9,7 @@ export default function Footer() {
             className="brand-name"
             style={{ fontFamily: "var(--font-fraunces), 'Fraunces', serif", fontSize: 19, fontWeight: 600 }}
           >
-            Raporto Gjakovën
+            Gjakova Connect
           </span>
           <div className="brand-sub" style={{ marginTop: 4, marginBottom: 14 }}>
             Komuna e Gjakovës
@@ -22,7 +22,11 @@ export default function Footer() {
         <div>
           <h4>KOMUNA</h4>
           <ul>
-            <li><Link href="/">Rreth komunës</Link></li>
+            <li>
+              <a href="https://gjakova.rks-gov.net/" target="_blank" rel="noopener noreferrer">
+                Rreth komunës
+              </a>
+            </li>
             <li><Link href="/">Departamentet</Link></li>
             <li><Link href="/">Kontakt</Link></li>
           </ul>
