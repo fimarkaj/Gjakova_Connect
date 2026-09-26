@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raporto Gjakovën</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --clay:#A22B1D;
+    --clay-dark:#7A1F16;
+    --clay-light:#C4573F;
+    --stone:#F1EADC;
+    --stone-2:#E5DAC3;
+    --stone-3:#D8C9A9;
+    --ink:#2A211B;
+    --ink-soft:#5B4F44;
+    --brass:#B08A34;
+    --olive:#4E6A45;
+    --olive-bg:#E4E9DD;
+    --amber:#B9762B;
+    --amber-bg:#F1E3CC;
+    --neutral-bg:#EAE2D0;
+    --paper:#FBF8F1;
+    --line: rgba(42,33,27,0.14);
+    --radius-s:6px;
+    --radius-m:12px;
+    --shadow: 0 1px 0 rgba(42,33,27,0.06);
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --stone:#211914;
+      --stone-2:#2A2019;
+      --stone-3:#372A20;
+      --paper:#1D1611;
+      --ink:#F1E7D8;
+      --ink-soft:#C9B9A4;
+      --line: rgba(241,231,216,0.14);
+      --olive-bg:#26301F;
+      --amber-bg:#3A2B18;
+      --neutral-bg:#2C231B;
+    }
+  }
+  :root[data-theme="dark"]{
+    --stone:#211914;
+    --stone-2:#2A2019;
+    --stone-3:#372A20;
+    --paper:#1D1611;
+    --ink:#F1E7D8;
+    --ink-soft:#C9B9A4;
+    --line: rgba(241,231,216,0.14);
+    --olive-bg:#26301F;
+    --amber-bg:#3A2B18;
+    --neutral-bg:#2C231B;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth; -webkit-text-size-adjust:100%;}
+  html, body{max-width:100%; overflow-x:hidden;}
+  body{
+    margin:0;
+    background:var(--stone);
+    color:var(--ink);
+    font-family:'Manrope',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-left:env(safe-area-inset-left);
+    padding-right:env(safe-area-inset-right);
+  }
+  h1,h2,h3,.serif{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    letter-spacing:-0.01em;
+    margin:0;
+  }
+  a{color:inherit;}
+  button{font-family:inherit;}
+  img{max-width:100%;display:block;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px;}
+  @media (max-width:400px){ .wrap{padding:0 16px;} }
+  :focus-visible{outline:2px solid var(--clay);outline-offset:2px;}
+
+  /* ---------- texture ---------- */
+  .stonepattern{
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(42,33,27,0.035) 0, transparent 45%),
+      radial-gradient(circle at 80% 70%, rgba(42,33,27,0.035) 0, transparent 45%);
+  }
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky; top:0; z-index:40;
+    background:color-mix(in srgb, var(--paper) 92%, transparent);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 24px; max-width:1120px; margin:0 auto;
+  }
+  .brand{display:flex; align-items:center; gap:10px; text-decoration:none;}
+  .brand-mark{width:34px;height:34px;flex:none;}
+  .brand-name{font-family:'Fraunces',serif; font-size:19px; font-weight:600; color:var(--ink);}
+  .brand-sub{font-size:11px; color:var(--ink-soft); margin-top:-2px;}
+  nav.links{display:flex; gap:28px; font-size:14.5px; font-weight:600;}
+  nav.links a{text-decoration:none; color:var(--ink-soft); padding:6px 0; border-bottom:2px solid transparent;}
+  nav.links a:hover{color:var(--ink);}
+  nav.links a.active{color:var(--clay); border-bottom-color:var(--clay);}
+  .nav-cta{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--clay); color:#fff; border:none; padding:10px 18px;
+    border-radius:var(--radius-s); font-weight:700; font-size:14px; cursor:pointer;
+    text-decoration:none;
+  }
+  .nav-cta:hover{background:var(--clay-dark);}
+  .menu-toggle{display:none; background:none; border:1px solid var(--line); border-radius:var(--radius-s); padding:8px; cursor:pointer;}
+  .menu-toggle svg{width:20px;height:20px;stroke:var(--ink);}
+
+  /* ---------- login screen ---------- */
+  .login-screen{
+    position:fixed; inset:0; z-index:100;
+    background:rgba(20,15,10,0.44);
+    backdrop-filter:blur(3px);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px; overflow-y:auto;
+    animation:fade-in .15s ease;
+  }
+  .login-screen[hidden]{display:none;}
+  @keyframes fade-in{ from{opacity:0;} to{opacity:1;} }
+  .login-card{
+    position:relative; width:100%; max-width:400px; background:var(--paper);
+    border:1px solid var(--line); border-radius:var(--radius-m);
+    padding:40px 32px 32px; text-align:center;
+    box-shadow:0 24px 60px rgba(20,15,10,0.28);
+  }
+  @media (prefers-reduced-motion: reduce){ .login-screen{animation:none;} }
+  .login-close{
+    position:absolute; top:16px; right:16px; background:none; border:none; cursor:pointer;
+    width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+    border-radius:100px; color:var(--ink-soft);
+  }
+  .login-close:hover{background:var(--stone);}
+  .login-close svg{width:18px;height:18px; stroke:currentColor;}
+  .login-mark{width:44px; height:44px; margin:0 auto 20px;}
+  .login-card h1{font-size:24px; margin-bottom:8px;}
+  .login-sub{font-size:14px; color:var(--ink-soft); line-height:1.5; margin-bottom:28px;}
+  .login-form{text-align:left;}
+  .login-form .field{margin-bottom:16px;}
+  .login-form label{display:block; font-size:13px; font-weight:700; margin-bottom:7px; color:var(--ink);}
+  .login-form input{width:100%;}
+  .login-submit{margin-top:6px;}
+  .login-divider{
+    display:flex; align-items:center; gap:14px; margin:22px 0; color:var(--ink-soft); font-size:12.5px;
+  }
+  .login-divider::before, .login-divider::after{content:''; flex:1; height:1px; background:var(--line);}
+  .login-google{
+    width:100%; display:flex; align-items:center; justify-content:center; gap:10px;
+    border:1.5px solid var(--line); background:var(--stone); color:var(--ink);
+    padding:13px; border-radius:var(--radius-s); font-weight:700; font-size:14px; cursor:pointer;
+    font-family:inherit; min-height:48px;
+  }
+  .login-google:hover{border-color:var(--stone-3);}
+  .login-foot{margin-top:24px; font-size:13.5px; color:var(--ink-soft);}
+  .login-foot a{color:var(--clay); font-weight:700; text-decoration:none;}
+  .login-foot a:hover{text-decoration:underline;}
+  @media (max-width:400px){
+    .login-card{padding:32px 20px 24px;}
+  }
+
+  /* ---------- hero ---------- */
+  .hero{padding:64px 0 40px; overflow:hidden;}
+  .hero-grid{display:grid; grid-template-columns:1.1fr 0.9fr; gap:48px; align-items:center;}
+  .eyebrow-free{color:var(--clay); font-weight:700; font-size:14.5px;}
+  .hero h1{font-size:clamp(34px,4.6vw,56px); line-height:1.06; margin-top:10px;}
+  .hero p.lede{font-size:18px; line-height:1.55; color:var(--ink-soft); max-width:46ch; margin-top:18px;}
+  .hero-actions{display:flex; gap:14px; margin-top:30px; flex-wrap:wrap;}
+  .btn-primary{
+    background:var(--clay); color:#fff; border:none; padding:15px 26px;
+    border-radius:var(--radius-s); font-weight:700; font-size:15.5px; cursor:pointer;
+    text-decoration:none; display:inline-block;
+  }
+  .btn-primary:hover{background:var(--clay-dark);}
+  .btn-ghost{
+    background:transparent; color:var(--ink); border:1.5px solid var(--line); padding:14px 24px;
+    border-radius:var(--radius-s); font-weight:700; font-size:15.5px; cursor:pointer;
+    text-decoration:none; display:inline-block;
+  }
+  .btn-ghost:hover{border-color:var(--ink-soft);}
+
+  .stats-strip{display:flex; gap:36px; margin-top:44px; flex-wrap:wrap;}
+  .stat b{font-family:'Fraunces',serif; font-size:30px; font-weight:600; display:block; color:var(--ink);}
+  .stat span{font-size:13px; color:var(--ink-soft);}
+  .stats-note{font-size:12px; color:var(--ink-soft); opacity:0.75; margin-top:10px;}
+
+  .hero-art{position:relative;}
+  .hero-art svg{width:100%; height:auto;}
+
+  /* ---------- section shell ---------- */
+  section{padding:76px 0;}
+  .section-head{max-width:56ch; margin-bottom:40px;}
+  .section-head h2{font-size:clamp(26px,3vw,36px);}
+  .section-head p{color:var(--ink-soft); font-size:16px; margin-top:10px; line-height:1.6;}
+  .divider{height:1px; background:var(--line); border:none; margin:0;}
+
+  /* ---------- report form ---------- */
+  .report{background:var(--paper); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .report-grid{display:grid; grid-template-columns:0.9fr 1.1fr; column-gap:56px; row-gap:28px;}
+  @media (max-width:860px){.report-grid{grid-template-columns:1fr; row-gap:20px;}}
+
+  .camera-zone{
+    border:1.5px solid var(--clay); border-radius:var(--radius-m);
+    padding:30px 24px; text-align:center; cursor:pointer; background:var(--clay);
+    color:#fff; transition:background .15s ease;
+    min-height:200px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+  }
+  @media (max-width:400px){
+    .camera-zone{min-height:160px; padding:22px 16px;}
+  }
+  .camera-zone:hover{background:var(--clay-dark);}
+  .camera-zone.has-preview{background:var(--stone); padding:0; min-height:auto;}
+  .dropzone-secondary.has-preview{padding:0; flex-direction:column; min-height:120px;}
+  .camera-zone svg{width:36px;height:36px; stroke:#fff;}
+  .camera-zone strong{font-size:17px;}
+  .camera-zone small{color:rgba(255,255,255,0.85); font-size:13px; max-width:30ch;}
+
+  .dropzone{
+    border:1.5px dashed var(--stone-3); border-radius:var(--radius-m);
+    padding:28px; text-align:center; cursor:pointer; background:var(--stone);
+    transition:border-color .15s ease, background .15s ease;
+    min-height:260px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+  }
+  .dropzone.drag{border-color:var(--clay); background:var(--stone-2);}
+  .dropzone svg{width:34px;height:34px; stroke:var(--ink-soft);}
+  .dropzone strong{font-size:15px;}
+  .dropzone small{color:var(--ink-soft); font-size:13px;}
+  .dropzone .filehint{font-size:12px; color:var(--ink-soft); margin-top:4px;}
+
+  .dropzone-secondary{
+    margin-top:12px; min-height:auto; padding:14px; flex-direction:row; gap:9px;
+  }
+  .dropzone-secondary svg{width:18px;height:18px;}
+  .dropzone-secondary .dz-text{font-size:13px; font-weight:600; color:var(--ink-soft);}
+  .preview-wrap{position:relative; width:100%; height:260px; border-radius:var(--radius-m); overflow:hidden;}
+  .preview-wrap img{width:100%; height:100%; object-fit:cover;}
+  .preview-remove{
+    position:absolute; top:10px; right:10px; background:rgba(42,33,27,0.75); color:#fff;
+    border:none; border-radius:100px; width:30px;height:30px; cursor:pointer; font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .field{margin-bottom:22px;}
+  .field label{display:block; font-size:13.5px; font-weight:700; margin-bottom:9px; color:var(--ink);}
+  .field .hint{font-weight:500; color:var(--ink-soft); font-size:12.5px; margin-left:6px;}
+  .chip-row{display:flex; flex-wrap:wrap; gap:9px;}
+  .auto-cat-note{
+    display:flex; align-items:flex-start; gap:10px;
+    background:var(--amber-bg); border:1px solid var(--line); border-radius:var(--radius-s);
+    padding:13px 14px; font-size:13px; color:var(--ink-soft); line-height:1.5;
+  }
+  .auto-cat-note svg{width:17px; height:17px; flex:none; stroke:var(--amber); margin-top:1px;}
+  .chip{
+    display:inline-flex; align-items:center; gap:7px;
+    border:1.5px solid var(--line); background:var(--stone); color:var(--ink-soft);
+    padding:9px 14px; border-radius:100px; font-size:13.5px; font-weight:700; cursor:pointer;
+    transition:all .12s ease; min-height:40px;
+  }
+  .chip svg{width:15px;height:15px; stroke:currentColor;}
+  .chip:hover{border-color:var(--stone-3);}
+  .chip.selected{background:var(--clay); border-color:var(--clay); color:#fff;}
+
+  input[type=text], textarea{
+    width:100%; border:1.5px solid var(--line); background:var(--stone);
+    border-radius:var(--radius-s); padding:13px 14px; font-size:14.5px; color:var(--ink);
+    font-family:inherit; resize:vertical;
+  }
+  input[type=text]::placeholder, textarea::placeholder{color:var(--ink-soft); opacity:.7;}
+  input[type=text]:focus, textarea:focus{border-color:var(--clay); outline:none;}
+  .loc-row{display:flex; gap:10px; margin-top:10px;}
+  .loc-row input{flex:1; min-width:0;}
+  .btn-geo{
+    flex:none; border:1.5px solid var(--line); background:var(--stone); border-radius:var(--radius-s);
+    padding:0 15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; font-size:13px; font-weight:700; color:var(--ink);
+    min-height:44px; white-space:nowrap;
+  }
+  .btn-geo-full{flex:1; width:100%;}
+  @media (max-width:400px){
+    .loc-row{flex-wrap:wrap;}
+    .loc-row input{flex-basis:100%;}
+    .btn-geo{flex:1;}
+  }
+  .btn-geo svg{width:16px;height:16px; stroke:var(--clay);}
+  .btn-geo:hover{border-color:var(--stone-3);}
+
+  .pin-map{
+    position:relative; background:var(--stone-2); border:1.5px solid var(--line); border-radius:var(--radius-m);
+    overflow:hidden; aspect-ratio:4/3; cursor:crosshair; touch-action:manipulation;
+  }
+  .pin-map svg{width:100%; height:100%; display:block; pointer-events:none;}
+  .pin-map-hint{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    font-size:12.5px; font-weight:700; color:var(--ink-soft); background:color-mix(in srgb, var(--paper) 85%, transparent);
+    padding:8px 14px; border-radius:100px; pointer-events:none; text-align:center; white-space:nowrap;
+  }
+  .pin-marker{
+    position:absolute; width:28px; height:28px; margin-left:-14px; margin-top:-28px; pointer-events:none;
+  }
+  .pin-marker svg{width:100%; height:100%; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.25));}
+  @media (max-width:400px){
+    .pin-map-hint{font-size:11.5px; padding:7px 12px; white-space:normal; max-width:70%;}
+  }
+  .geo-status{font-size:12px; color:var(--ink-soft); margin-top:7px;}
+
+  .btn-submit{
+    width:100%; background:var(--clay); color:#fff; border:none; padding:16px;
+    border-radius:var(--radius-s); font-weight:700; font-size:15.5px; cursor:pointer; margin-top:6px;
+  }
+  .btn-submit:hover{background:var(--clay-dark);}
+  .btn-submit:disabled{background:var(--stone-3); color:var(--ink-soft); cursor:not-allowed;}
+  .form-note{font-size:12px; color:var(--ink-soft); margin-top:12px; line-height:1.6;}
+
+  .toast{
+    position:fixed; left:50%; bottom:28px; transform:translate(-50%,20px);
+    background:var(--ink); color:var(--paper); padding:14px 20px; border-radius:var(--radius-s);
+    font-size:14px; font-weight:600; display:flex; align-items:center; gap:10px;
+    opacity:0; pointer-events:none; transition:all .25s ease; z-index:80; box-shadow:0 10px 30px rgba(0,0,0,0.25);
+  }
+  .toast.show{opacity:1; transform:translate(-50%,0);}
+  .toast svg{width:17px;height:17px; stroke:#8FBF7F;}
+
+  /* ---------- map + feed ---------- */
+  .feed-grid{display:grid; grid-template-columns:1fr 1fr; gap:44px; align-items:start;}
+  @media (max-width:900px){.feed-grid{grid-template-columns:1fr; gap:28px;}}
+  .map-frame{
+    background:var(--stone-2); border:1px solid var(--line); border-radius:var(--radius-m);
+    padding:14px; position:relative; aspect-ratio:1/1;
+  }
+  .map-frame svg{width:100%;height:100%;}
+  .pin{
+    position:absolute; width:26px; height:26px; margin-left:-13px; margin-top:-26px;
+    cursor:pointer; transform-origin:bottom center; transition:transform .15s ease;
+  }
+  .pin:hover, .pin.active{transform:scale(1.18);}
+  .pin svg{width:100%;height:100%; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.25));}
+  .map-caption{font-size:12px; color:var(--ink-soft); margin-top:12px; text-align:center;}
+
+  .filter-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;}
+  .filter-chip{
+    display:inline-flex; align-items:center; gap:7px;
+    border:1.5px solid var(--line); background:transparent; color:var(--ink-soft);
+    padding:7px 13px; border-radius:100px; font-size:12.5px; font-weight:700; cursor:pointer;
+  }
+  .filter-chip.selected{background:var(--ink); border-color:var(--ink); color:var(--paper);}
+  .filter-dot{width:8px; height:8px; border-radius:100px; flex:none; background:currentColor;}
+
+  .report-list{display:flex; flex-direction:column; gap:14px; max-height:640px; overflow-y:auto; padding-right:4px;}
+  @media (max-width:900px){ .report-list{max-height:70vh;} }
+  .report-card{
+    display:flex; gap:14px; background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-m);
+    padding:14px; transition:border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+  }
+  .report-card:hover{box-shadow:0 6px 16px rgba(42,33,27,0.08); transform:translateY(-1px);}
+  .report-card.highlight{border-color:var(--clay); box-shadow:0 0 0 3px rgba(162,43,29,0.12);}
+  .report-thumb{width:76px; height:76px; border-radius:var(--radius-s); overflow:hidden; flex:none; background:var(--stone-3);}
+  @media (max-width:340px){ .report-thumb{width:60px; height:60px;} }
+  .report-thumb img{width:100%; height:100%; object-fit:cover;}
+  .report-thumb.placeholder{display:flex; align-items:center; justify-content:center;}
+  .report-thumb.placeholder svg{width:26px;height:26px; stroke:var(--ink-soft);}
+  .report-body{flex:1; min-width:0;}
+  .report-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+  .report-cat{font-size:12px; font-weight:700; color:var(--clay); display:flex; align-items:center; gap:5px;}
+  .report-cat svg{width:13px;height:13px; stroke:var(--clay);}
+  .report-loc{font-size:14.5px; font-weight:700; margin-top:3px; color:var(--ink);}
+  .report-desc{font-size:13.5px; color:var(--ink-soft); margin-top:4px; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .report-meta{font-size:12px; color:var(--ink-soft); margin-top:8px;}
+  .status-pill{
+    font-size:11.5px; font-weight:800; padding:5px 10px; border-radius:100px; flex:none; white-space:nowrap;
+  }
+  .status-received{background:var(--neutral-bg); color:var(--ink-soft);}
+  .status-progress{background:var(--amber-bg); color:var(--amber);}
+  .status-resolved{background:var(--olive-bg); color:var(--olive);}
+
+  .empty-state{
+    text-align:center; padding:50px 20px; color:var(--ink-soft); font-size:14px;
+    border:1.5px dashed var(--stone-3); border-radius:var(--radius-m);
+  }
+
+  /* ---------- how it works ---------- */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:28px;}
+  @media (max-width:760px){.steps{grid-template-columns:1fr;}}
+  .step{padding-top:20px; border-top:2px solid var(--step-color, var(--clay));}
+  .step:nth-child(1){--step-color:var(--clay);}
+  .step:nth-child(2){--step-color:var(--amber);}
+  .step:nth-child(3){--step-color:var(--olive);}
+  .step .step-icon{display:block; width:38px;height:38px; stroke:var(--step-color, var(--clay)); margin-bottom:16px;}
+  .step .step-num{
+    display:flex; align-items:center; justify-content:center;
+    width:24px; height:24px; border-radius:100px; background:var(--step-color, var(--clay));
+    color:#fff; font-size:12px; font-weight:800; font-family:'Manrope',sans-serif; margin-bottom:14px;
+  }
+  .step h3{font-size:19px; margin-bottom:8px;}
+  .step p{font-size:14.5px; color:var(--ink-soft); line-height:1.6; margin:0;}
+
+  /* ---------- footer ---------- */
+  /* fixed (theme-independent) so the footer stays a dark brand band in both light and dark mode */
+  footer{background:#2A211B; color:#F1EADC; padding:56px 0 30px;}
+  .footer-grid{display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:40px;}
+  @media (max-width:760px){.footer-grid{grid-template-columns:1fr; gap:32px;}}
+  footer .brand-name{color:#F1EADC;}
+  footer .brand-sub{color:rgba(241,231,216,0.55);}
+  footer p{color:rgba(241,231,216,0.65); font-size:14px; line-height:1.6; max-width:38ch;}
+  footer h4{font-size:12.5px; font-weight:700; color:rgba(241,231,216,0.55); margin-bottom:14px;}
+  footer ul{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px;}
+  footer a{color:rgba(241,231,216,0.85); text-decoration:none; font-size:14.5px;}
+  footer a:hover{color:#fff;}
+  .footer-bottom{
+    margin-top:48px; padding-top:24px; border-top:1px solid rgba(241,231,216,0.14);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;
+    font-size:12.5px; color:rgba(241,231,216,0.45);
+  }
+
+  @media (max-width:760px){
+    nav.links{display:none;}
+    .menu-toggle{display:flex;}
+    .hero-grid{grid-template-columns:1fr;}
+    .hero-art{order:-1; max-width:280px; margin:0 auto;}
+    section{padding:52px 0;}
+    .hero{padding:40px 0 28px;}
+  }
+  @media (max-width:480px){
+    .hero-actions{flex-direction:column; align-items:stretch;}
+    .hero-actions .btn-primary, .hero-actions .btn-ghost{text-align:center;}
+    .stats-strip{gap:24px;}
+    .stat b{font-size:24px;}
+    .nav-cta{padding:9px 14px; font-size:13px;}
+    .brand-name{font-size:16px;}
+  }
+  @media (max-width:340px){
+    .stats-strip{flex-direction:column; gap:14px;}
+  }
+  @media (hover:none) and (pointer:coarse){
+    .chip, .filter-chip, .btn-primary, .btn-ghost, .btn-submit, .nav-cta, .btn-geo{min-height:44px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body class="stonepattern">
+
+<header>
+  <div class="nav">
+    <a href="#top" class="brand">
+      <svg class="brand-mark" viewBox="0 0 34 34" fill="none">
+        <circle cx="17" cy="17" r="16" fill="var(--clay)"/>
+        <path d="M9 22 L9 14 L17 8 L25 14 L25 22 Z" fill="var(--stone)"/>
+        <circle cx="17" cy="12.5" r="1.6" fill="var(--clay)"/>
+        <rect x="14.5" y="17" width="5" height="5" fill="var(--clay)"/>
+      </svg>
+      <span>
+        <span class="brand-name" style="display:block;">Raporto Gjakovën</span>
+        <span class="brand-sub">Komuna e Gjakovës</span>
+      </span>
+    </a>
+    <nav class="links" id="navLinks">
+      <a href="#top" id="navBallina" class="active">Ballina</a>
+      <a href="#raportet" id="navRaportimet">Raportimet</a>
+    </nav>
+    <button type="button" class="nav-cta" id="navLoginBtn">
+      Hyrje
+    </button>
+    <button class="menu-toggle" id="menuToggle" aria-label="Hap menynë">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="login-screen" hidden>
+  <div class="login-card">
+    <button type="button" class="login-close" id="loginClose" aria-label="Mbyll">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+    <svg class="login-mark" viewBox="0 0 34 34" fill="none">
+      <circle cx="17" cy="17" r="16" fill="var(--clay)"/>
+      <path d="M9 22 L9 14 L17 8 L25 14 L25 22 Z" fill="var(--stone)"/>
+      <circle cx="17" cy="12.5" r="1.6" fill="var(--clay)"/>
+      <rect x="14.5" y="17" width="5" height="5" fill="var(--clay)"/>
+    </svg>
+
+    <h1>Mirë se erdhe përsëri</h1>
+    <p class="login-sub">Hyr për të ndjekur raportimet e tua dhe statusin e tyre.</p>
+
+    <form id="loginForm" class="login-form">
+      <div class="field">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" placeholder="emri@shembull.com" required>
+      </div>
+      <div class="field">
+        <label for="loginPassword">Fjalëkalimi</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn-submit login-submit">Hyr</button>
+    </form>
+
+    <div class="login-divider"><span>ose</span></div>
+
+    <button type="button" class="login-google">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.4H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1C3.4 21.3 7.4 24 12 24z"/><path fill="#FBBC05" d="M5.4 14.4c-.2-.7-.4-1.5-.4-2.4s.1-1.6.4-2.4V6.5H1.4C.5 8.2 0 10 0 12s.5 3.8 1.4 5.5l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.3.6 4.5 1.8l3.4-3.4C17.9 1.2 15.2 0 12 0 7.4 0 3.4 2.7 1.4 6.5l4 3.1c.9-2.8 3.5-4.8 6.6-4.8z"/></svg>
+      Vazhdo me Google
+    </button>
+
+    <p class="login-foot">Nuk ke llogari? <a href="#" id="loginSignupLink">Krijo një</a></p>
+  </div>
+</div>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow-free">Për qytetarët e Gjakovës</div>
+        <h1>Sheh një problem<br>në qytet? Na e trego.</h1>
+        <p class="lede">Bëj një foto, shëno vendin, dhe raportimi shkon direkt te komuna. Ne e ndjekim statusin bashkë me ty — nga "pranuar" te "zgjidhur".</p>
+        <div class="hero-actions">
+          <a href="#raporto" class="btn-primary">Raporto një problem</a>
+          <a href="#raportet" class="btn-ghost">Shiko raportimet e fundit</a>
+        </div>
+        <div class="stats-strip" id="statsStrip"></div>
+        <div class="stats-note">*të dhëna shembull për prototipin</div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 480 360" fill="none">
+          <rect x="0" y="240" width="480" height="120" fill="var(--stone-2)"/>
+          <!-- clock tower -->
+          <rect x="40" y="150" width="34" height="110" fill="var(--clay)"/>
+          <rect x="34" y="140" width="46" height="16" fill="var(--clay-dark)"/>
+          <circle cx="57" cy="120" r="18" fill="var(--paper)" stroke="var(--brass)" stroke-width="3"/>
+          <line x1="57" y1="120" x2="57" y2="108" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="57" y1="120" x2="65" y2="120" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
+          <!-- bazaar roofs -->
+          <polygon points="90,260 130,225 170,260" fill="var(--clay-light)"/>
+          <polygon points="165,260 205,220 245,260" fill="var(--clay)"/>
+          <rect x="95" y="258" width="70" height="42" fill="var(--stone-3)"/>
+          <rect x="170" y="258" width="70" height="42" fill="var(--stone-3)"/>
+          <!-- mosque dome + minaret -->
+          <rect x="330" y="260" width="18" height="90" fill="var(--clay-dark)"/>
+          <polygon points="330,260 339,236 348,260" fill="var(--brass)"/>
+          <circle cx="339" cy="230" r="4" fill="var(--brass)"/>
+          <ellipse cx="270" cy="252" rx="46" ry="30" fill="var(--clay)"/>
+          <rect x="234" y="252" width="72" height="48" fill="var(--stone-3)"/>
+          <circle cx="270" cy="216" r="5" fill="var(--brass)"/>
+          <!-- river line -->
+          <path d="M0 300 Q 120 280 240 300 T 480 300" stroke="var(--brass)" stroke-width="2" opacity="0.4" fill="none"/>
+          <!-- stone street dots -->
+          <g opacity="0.5">
+            <circle cx="60" cy="335" r="2" fill="var(--stone-3)"/>
+            <circle cx="90" cy="330" r="2" fill="var(--stone-3)"/>
+            <circle cx="130" cy="336" r="2" fill="var(--stone-3)"/>
+            <circle cx="180" cy="329" r="2" fill="var(--stone-3)"/>
+            <circle cx="230" cy="335" r="2" fill="var(--stone-3)"/>
+            <circle cx="280" cy="330" r="2" fill="var(--stone-3)"/>
+            <circle cx="330" cy="337" r="2" fill="var(--stone-3)"/>
+            <circle cx="380" cy="330" r="2" fill="var(--stone-3)"/>
+            <circle cx="420" cy="335" r="2" fill="var(--stone-3)"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- REPORT FORM -->
+  <section class="report" id="raporto">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Raporto një problem</h2>
+        <p>Sa më shumë detaje, aq më shpejt reagon ekipi përkatës. Foto dhe vendndodhja janë të detyrueshme.</p>
+      </div>
+
+      <div class="report-grid">
+        <div>
+          <div id="cameraZone" class="camera-zone">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 7h3l1.5-2.5h7L17 7h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V8a1 1 0 011-1z"/>
+              <circle cx="12" cy="13" r="3.6"/>
+            </svg>
+            <strong>Bëj një foto</strong>
+            <small>Hap kamerën e telefonit dhe fotografo problemin direkt</small>
+          </div>
+          <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
+
+          <div id="dropzone" class="dropzone dropzone-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 16.5V19a2 2 0 002 2h12a2 2 0 002-2v-2.5"/>
+              <path d="M7 9l5-5 5 5"/>
+              <path d="M12 4v13"/>
+            </svg>
+            <span class="dz-text">Ose ngarko një foto ekzistuese</span>
+          </div>
+          <input type="file" id="fileInput" accept="image/*" style="display:none;">
+        </div>
+
+        <div>
+          <div class="field auto-cat-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z"/></svg>
+            <span>Kategoria e problemit njihet automatikisht nga fotoja — nuk ka nevojë ta zgjedhësh vetë.</span>
+          </div>
+
+          <div class="field">
+            <label>Vendndodhja <span class="hint">kliko në hartë për të shënuar pikën</span></label>
+            <div class="pin-map" id="pinMap">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                <rect width="100" height="100" fill="var(--stone-2)"/>
+                <path d="M0 62 Q 25 55 50 62 T 100 58" stroke="var(--brass)" stroke-width="1.4" fill="none" opacity="0.45"/>
+                <line x1="15" y1="0" x2="15" y2="100" stroke="var(--stone-3)" stroke-width="0.6"/>
+                <line x1="42" y1="0" x2="42" y2="100" stroke="var(--stone-3)" stroke-width="0.6"/>
+                <line x1="68" y1="0" x2="68" y2="100" stroke="var(--stone-3)" stroke-width="0.6"/>
+                <line x1="0" y1="30" x2="100" y2="30" stroke="var(--stone-3)" stroke-width="0.6"/>
+                <line x1="0" y1="75" x2="100" y2="75" stroke="var(--stone-3)" stroke-width="0.6"/>
+              </svg>
+              <div class="pin-map-hint" id="pinMapHint">Kliko / prek hartën për të shënuar problemin</div>
+              <div id="pinMarker" class="pin-marker" hidden>
+                <svg viewBox="0 0 24 30" fill="none"><path d="M12 0C5.4 0 0 5.4 0 12c0 8 12 18 12 18s12-10 12-18c0-6.6-5.4-12-12-12z" fill="var(--clay)"/><circle cx="12" cy="12" r="4.6" fill="var(--paper)"/></svg>
+              </div>
+            </div>
+            <div class="loc-row">
+              <button type="button" class="btn-geo btn-geo-full" id="geoBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+                Gjej mua
+              </button>
+            </div>
+            <div class="geo-status" id="geoStatus"></div>
+          </div>
+
+          <div class="field">
+            <label>Përshkrimi <span class="hint">e detyrueshme</span></label>
+            <textarea id="descInput" rows="3" placeholder="Përshkruaj shkurt problemin — p.sh. gropë e madhe në mes të rrugës" required></textarea>
+          </div>
+
+          <button class="btn-submit" id="submitBtn" disabled>Dërgo raportin</button>
+          <div class="form-note">Duke dërguar, raportimi shfaqet publikisht te "Raportet e fundit" pa emrin tënd. Komuna e Gjakovës e përditëson statusin kur ekipi e shqyrton.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEED + MAP -->
+  <section id="raportet">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Raportet e fundit</h2>
+        <p>Çdo pikë në hartë është një raportim i qytetarëve. Kliko një pikë ose filtro sipas statusit.</p>
+      </div>
+
+      <div class="filter-row" id="filterRow"></div>
+
+      <div class="feed-grid">
+        <div>
+          <div class="map-frame">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+              <rect width="100" height="100" fill="var(--stone-2)"/>
+              <path d="M0 62 Q 25 55 50 62 T 100 58" stroke="var(--brass)" stroke-width="1.4" fill="none" opacity="0.45"/>
+              <line x1="15" y1="0" x2="15" y2="100" stroke="var(--stone-3)" stroke-width="0.6"/>
+              <line x1="42" y1="0" x2="42" y2="100" stroke="var(--stone-3)" stroke-width="0.6"/>
+              <line x1="68" y1="0" x2="68" y2="100" stroke="var(--stone-3)" stroke-width="0.6"/>
+              <line x1="0" y1="30" x2="100" y2="30" stroke="var(--stone-3)" stroke-width="0.6"/>
+              <line x1="0" y1="75" x2="100" y2="75" stroke="var(--stone-3)" stroke-width="0.6"/>
+            </svg>
+            <div id="pinLayer"></div>
+          </div>
+          <div class="map-caption">Hartë ilustruese e qytetit — jo në shkallë reale</div>
+        </div>
+
+        <div>
+          <div class="report-list" id="reportList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- HOW IT WORKS -->
+  <section id="si-funksionon">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Si funksionon</h2>
+        <p>Tri hapa, nga qytetari te ekipi i komunës.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">1</span>
+          <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13.5" r="3.2"/></svg>
+          <h3>Fotografo problemin</h3>
+          <p>Bëj një foto direkt nga telefoni — gropë në rrugë, dritë e prishur, mbeturina, apo çështje tjetër.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">2</span>
+          <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <h3>Shëno vendndodhjen</h3>
+          <p>Përdor GPS-në ose shkruaj rrugën. Kjo ndihmon ekipin ta gjejë problemin pa vonesë.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">3</span>
+          <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+          <h3>Ndiq statusin</h3>
+          <p>Raportimi kalon nga "Pranuar" në "Në proces" e më pas "Zgjidhur", publikisht, për të gjithë.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap footer-grid">
+    <div>
+      <span class="brand-name" style="font-family:'Fraunces',serif; font-size:19px; font-weight:600;">Raporto Gjakovën</span>
+      <div class="brand-sub" style="margin-top:4px; margin-bottom:14px;">Komuna e Gjakovës</div>
+      <p>Platformë qytetare për raportimin e problemeve në infrastrukturën publike të qytetit — një prototip i zhvilluar për hackathon.</p>
+    </div>
+    <div>
+      <h4>KOMUNA</h4>
+      <ul>
+        <li><a href="#top">Rreth komunës</a></li>
+        <li><a href="#top">Departamentet</a></li>
+        <li><a href="#top">Kontakt</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>PLATFORMA</h4>
+      <ul>
+        <li><a href="#raporto">Raporto problem</a></li>
+        <li><a href="#raportet">Shiko raportimet</a></li>
+        <li><a href="#si-funksionon">Si funksionon</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <span>Prototip hackathon — jo shërbim zyrtar aktiv i Komunës së Gjakovës.</span>
+    <span>Gjakovë, Kosovë</span>
+  </div>
+</footer>
+
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+  <span id="toastText">Raportimi u dërgua.</span>
+</div>
+
+<script>
+(function(){
+
+  // ---------- data ----------
+  var CATEGORIES = [
+    {id:'rruge', label:'Rrugë & Trotuare', icon:'road'},
+    {id:'drite', label:'Ndriçim Publik', icon:'bulb'},
+    {id:'mbeturina', label:'Mbeturina', icon:'bin'},
+    {id:'uji', label:'Uji & Kanalizimi', icon:'drop'},
+    {id:'gjelberim', label:'Gjelbërim', icon:'leaf'},
+    {id:'tjeter', label:'Tjetër', icon:'dot'},
+    {id:'auto', label:'Po identifikohet nga AI', icon:'spark'}
+  ];
+
+  var ICONS = {
+    road:'<path d="M4 20L9 4h6l5 16"/><path d="M12 4v16" stroke-dasharray="2 2"/>',
+    bulb:'<path d="M9 18h6M10 22h4"/><path d="M12 2a6 6 0 00-3.6 10.8c.6.5 1.1 1.3 1.1 2.2h5a3 3 0 011.1-2.2A6 6 0 0012 2z"/>',
+    bin:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+    drop:'<path d="M12 3s6 6.5 6 11a6 6 0 11-12 0c0-4.5 6-11 6-11z"/>',
+    leaf:'<path d="M4 20c8 0 14-6 14-14 0 0-13 0-14 12"/><path d="M4 20c0-4 3-8 7-9"/>',
+    dot:'<circle cx="12" cy="12" r="2"/><circle cx="5" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>',
+    spark:'<path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z"/>'
+  };
+
+  function catIcon(id, cls){
+    var c = CATEGORIES.find(function(c){return c.id===id;}) || CATEGORIES[5];
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="'+(cls||'')+'">'+ICONS[c.icon]+'</svg>';
+  }
+  function catLabel(id){
+    var c = CATEGORIES.find(function(c){return c.id===id;});
+    return c ? c.label : 'Tjetër';
+  }
+
+  var STATUS = {
+    received:{label:'Pranuar', cls:'status-received'},
+    progress:{label:'Në proces', cls:'status-progress'},
+    resolved:{label:'Zgjidhur', cls:'status-resolved'}
+  };
+
+  var seedPhoto = function(hue){
+    // simple generated placeholder photo (SVG data URI) per seed report, since no external photos are used
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="hsl('+hue+',30%,55%)"/><rect y="120" width="200" height="80" fill="hsl('+hue+',25%,40%)"/></svg>';
+    return 'data:image/svg+xml;base64,' + btoa(svg);
+  };
+
+  var reports = [
+    {id:'r1', cat:'rruge', loc:'Rruga Ndue Përlleshi', desc:'Gropë e thellë në mes të rrugës, e rrezikshme për makinat.', status:'progress', time:'2 orë më parë', photo:seedPhoto(18), x:28, y:64},
+    {id:'r2', cat:'drite', loc:'Sheshi Zahir Pajaziti', desc:'Dy shtylla drite jofunksionale tri netët e fundit.', status:'received', time:'5 orë më parë', photo:seedPhoto(45), x:52, y:40},
+    {id:'r3', cat:'mbeturina', loc:'Lagjja Hadum, pranë Çarshisë', desc:'Kontejneri i mbeturinave nuk është zbrazur prej një jave.', status:'resolved', time:'1 ditë më parë', photo:seedPhoto(95), x:66, y:70},
+    {id:'r4', cat:'uji', loc:'Bulevardi Nëna Terezë', desc:'Rrjedhje uji nga një tub nëntokësor, po formohet pellg.', status:'progress', time:'1 ditë më parë', photo:seedPhoto(205), x:38, y:22},
+    {id:'r5', cat:'gjelberim', loc:'Parku i Qytetit', desc:'Disa pemë të thyera nga stuhia e fundit.', status:'resolved', time:'3 ditë më parë', photo:seedPhoto(130), x:80, y:34},
+    {id:'r6', cat:'rruge', loc:'Rruga Muharrem Fejza', desc:'Trotuar i çarë, i vështirë për kalimtarët me karrocë.', status:'received', time:'4 ditë më parë', photo:seedPhoto(18), x:15, y:44}
+  ];
+
+  var activeFilter = 'all';
+  var pendingPhoto = null;
+  var pendingLatLng = null;
+
+  // ---------- filters ----------
+  var filterRow = document.getElementById('filterRow');
+  var filterDefs = [
+    {id:'all', label:'Të gjitha', color:null},
+    {id:'received', label:'Pranuar', color:'var(--ink-soft)'},
+    {id:'progress', label:'Në proces', color:'var(--amber)'},
+    {id:'resolved', label:'Zgjidhur', color:'var(--olive)'}
+  ];
+  filterDefs.forEach(function(f){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'filter-chip' + (f.id==='all' ? ' selected' : '');
+    if(f.color){
+      var dot = document.createElement('span');
+      dot.className = 'filter-dot';
+      dot.style.background = f.color;
+      b.appendChild(dot);
+    }
+    b.appendChild(document.createTextNode(f.label));
+    b.addEventListener('click', function(){
+      activeFilter = f.id;
+      Array.prototype.forEach.call(filterRow.children, function(el){ el.classList.remove('selected'); });
+      b.classList.add('selected');
+      renderList();
+    });
+    filterRow.appendChild(b);
+  });
+
+  // ---------- camera / dropzone / file ----------
+  var cameraZone = document.getElementById('cameraZone');
+  var cameraInput = document.getElementById('cameraInput');
+  var dropzone = document.getElementById('dropzone');
+  var fileInput = document.getElementById('fileInput');
+
+  cameraZone.addEventListener('click', function(){ cameraInput.click(); });
+  cameraInput.addEventListener('change', function(){
+    if(cameraInput.files && cameraInput.files[0]) handleFile(cameraInput.files[0], 'camera');
+  });
+
+  dropzone.addEventListener('click', function(){ fileInput.click(); });
+  dropzone.addEventListener('dragover', function(e){ e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', function(){ dropzone.classList.remove('drag'); });
+  dropzone.addEventListener('drop', function(e){
+    e.preventDefault(); dropzone.classList.remove('drag');
+    if(e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0], 'upload');
+  });
+  fileInput.addEventListener('change', function(){
+    if(fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0], 'upload');
+  });
+
+  function handleFile(file, source){
+    if(!file.type.startsWith('image/')) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      pendingPhoto = e.target.result;
+      var previewHtml = '<div class="preview-wrap"><img src="'+pendingPhoto+'" alt="Pamje e fotos"><button type="button" class="preview-remove" id="removePhoto">&times;</button></div>';
+      // show the preview in whichever zone supplied the photo, collapse the other
+      if(source === 'camera'){
+        cameraZone.innerHTML = previewHtml;
+        cameraZone.classList.add('has-preview');
+        dropzone.style.display = 'none';
+      } else {
+        dropzone.innerHTML = previewHtml;
+        dropzone.classList.add('has-preview');
+        cameraZone.style.display = 'none';
+      }
+      document.getElementById('removePhoto').addEventListener('click', function(ev){
+        ev.stopPropagation();
+        resetPhotoZones();
+      });
+      validateForm();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetPhotoZones(){
+    pendingPhoto = null;
+    cameraZone.classList.remove('has-preview');
+    cameraZone.style.display = '';
+    cameraZone.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2.5h7L17 7h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V8a1 1 0 011-1z"/><circle cx="12" cy="13" r="3.6"/></svg><strong>Bëj një foto</strong><small>Hap kamerën e telefonit dhe fotografo problemin direkt</small>';
+    dropzone.classList.remove('has-preview');
+    dropzone.style.display = '';
+    dropzone.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16.5V19a2 2 0 002 2h12a2 2 0 002-2v-2.5"/><path d="M7 9l5-5 5 5"/><path d="M12 4v13"/></svg><span class="dz-text">Ose ngarko një foto ekzistuese</span>';
+    cameraInput.value = '';
+    fileInput.value = '';
+    validateForm();
+  }
+
+  // ---------- pin-the-map location ----------
+  var geoBtn = document.getElementById('geoBtn');
+  var geoStatus = document.getElementById('geoStatus');
+  var pinMap = document.getElementById('pinMap');
+  var pinMapHint = document.getElementById('pinMapHint');
+  var pinMarker = document.getElementById('pinMarker');
+  var descInput = document.getElementById('descInput');
+  var pendingPin = null; // {x, y} as percentages within the pin map, 0-100
+
+  function placePin(xPct, yPct){
+    pendingPin = {x:xPct, y:yPct};
+    pinMarker.style.left = xPct + '%';
+    pinMarker.style.top = yPct + '%';
+    pinMarker.hidden = false;
+    pinMapHint.hidden = true;
+    validateForm();
+  }
+
+  pinMap.addEventListener('click', function(e){
+    var rect = pinMap.getBoundingClientRect();
+    var xPct = ((e.clientX - rect.left) / rect.width) * 100;
+    var yPct = ((e.clientY - rect.top) / rect.height) * 100;
+    xPct = Math.max(2, Math.min(98, xPct));
+    yPct = Math.max(2, Math.min(98, yPct));
+    placePin(xPct, yPct);
+    pendingLatLng = null;
+    geoStatus.textContent = 'Pika u shënua manualisht në hartë.';
+  });
+
+  geoBtn.addEventListener('click', function(){
+    if(!navigator.geolocation){
+      geoStatus.textContent = 'GPS nuk mbështetet në këtë shfletues.';
+      return;
+    }
+    geoStatus.textContent = 'Duke gjetur vendndodhjen…';
+    navigator.geolocation.getCurrentPosition(function(pos){
+      pendingLatLng = {lat:pos.coords.latitude, lng:pos.coords.longitude};
+      geoStatus.textContent = 'Vendndodhja u gjet dhe u shënua në hartë (' + pos.coords.latitude.toFixed(3) + ', ' + pos.coords.longitude.toFixed(3) + ').';
+      placePin(50, 50);
+    }, function(){
+      geoStatus.textContent = 'Nuk u lejua qasja te vendndodhja — shëno pikën manualisht në hartë.';
+    }, {timeout:6000});
+  });
+
+  // ---------- submit ----------
+  var submitBtn = document.getElementById('submitBtn');
+  function validateForm(){
+    submitBtn.disabled = !(pendingPhoto && pendingPin && descInput.value.trim().length > 2);
+  }
+  descInput.addEventListener('input', validateForm);
+
+  submitBtn.addEventListener('click', function(){
+    if(submitBtn.disabled) return;
+    var locLabel = pendingLatLng
+      ? 'Vendndodhja ime aktuale (' + pendingLatLng.lat.toFixed(3) + ', ' + pendingLatLng.lng.toFixed(3) + ')'
+      : 'Pikë e shënuar në hartë';
+    var newReport = {
+      id: 'r' + Date.now(),
+      cat: 'auto',
+      loc: locLabel,
+      desc: descInput.value.trim(),
+      status: 'received',
+      time: 'Sapo dërguar',
+      photo: pendingPhoto,
+      x: pendingPin.x,
+      y: pendingPin.y
+    };
+    reports.unshift(newReport);
+    persist();
+    renderStats();
+    renderMap();
+    renderList();
+    showToast('Raportimi u dërgua — statusi tani është "Pranuar".');
+
+    // reset form
+    resetPhotoZones();
+    descInput.value = '';
+    geoStatus.textContent = '';
+    pendingLatLng = null;
+    pendingPin = null;
+    pinMarker.hidden = true;
+    pinMapHint.hidden = false;
+    validateForm();
+
+    document.getElementById('raportet').scrollIntoView({behavior:'smooth', block:'start'});
+  });
+
+  function showToast(msg){
+    var toast = document.getElementById('toast');
+    document.getElementById('toastText').textContent = msg;
+    toast.classList.add('show');
+    setTimeout(function(){ toast.classList.remove('show'); }, 3200);
+  }
+
+  // ---------- stats ----------
+  function renderStats(){
+    var total = reports.length;
+    var resolved = reports.filter(function(r){return r.status==='resolved';}).length;
+    var pct = total ? Math.round(resolved/total*100) : 0;
+    var progress = reports.filter(function(r){return r.status==='progress';}).length;
+    var el = document.getElementById('statsStrip');
+    el.innerHTML =
+      '<div class="stat"><b>'+total+'</b><span>raportime gjithsej</span></div>' +
+      '<div class="stat"><b>'+pct+'%</b><span>të zgjidhura</span></div>' +
+      '<div class="stat"><b>'+progress+'</b><span>në proces tani</span></div>';
+  }
+
+  // ---------- map pins ----------
+  function renderMap(){
+    var layer = document.getElementById('pinLayer');
+    layer.innerHTML = '';
+    reports.forEach(function(r){
+      var pin = document.createElement('button');
+      pin.type = 'button';
+      pin.className = 'pin';
+      pin.style.left = r.x + '%';
+      pin.style.top = r.y + '%';
+      pin.setAttribute('aria-label', catLabel(r.cat) + ' — ' + r.loc);
+      var color = r.status === 'resolved' ? 'var(--olive)' : (r.status === 'progress' ? 'var(--amber)' : 'var(--clay)');
+      pin.innerHTML = '<svg viewBox="0 0 24 30" fill="none"><path d="M12 0C5.4 0 0 5.4 0 12c0 8 12 18 12 18s12-10 12-18c0-6.6-5.4-12-12-12z" fill="'+color+'"/><circle cx="12" cy="12" r="4.6" fill="var(--paper)"/></svg>';
+      pin.addEventListener('click', function(){
+        var card = document.getElementById('card-'+r.id);
+        if(card){
+          card.scrollIntoView({behavior:'smooth', block:'center'});
+          card.classList.add('highlight');
+          setTimeout(function(){ card.classList.remove('highlight'); }, 1600);
+        }
+      });
+      layer.appendChild(pin);
+    });
+  }
+
+  // ---------- list ----------
+  function renderList(){
+    var list = document.getElementById('reportList');
+    var filtered = activeFilter === 'all' ? reports : reports.filter(function(r){return r.status===activeFilter;});
+    if(!filtered.length){
+      list.innerHTML = '<div class="empty-state">Nuk ka raportime me këtë status ende.</div>';
+      return;
+    }
+    list.innerHTML = filtered.map(function(r){
+      var st = STATUS[r.status];
+      return '' +
+      '<div class="report-card" id="card-'+r.id+'">' +
+        '<div class="report-thumb"><img src="'+r.photo+'" alt=""></div>' +
+        '<div class="report-body">' +
+          '<div class="report-top">' +
+            '<div>' +
+              '<div class="report-cat">' + catIcon(r.cat) + '<span>' + catLabel(r.cat) + '</span></div>' +
+              '<div class="report-loc">' + escapeHtml(r.loc) + '</div>' +
+            '</div>' +
+            '<div class="status-pill ' + st.cls + '">' + st.label + '</div>' +
+          '</div>' +
+          '<div class="report-desc">' + escapeHtml(r.desc) + '</div>' +
+          '<div class="report-meta">' + r.time + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function escapeHtml(s){
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  // ---------- persistence (per-viewer convenience only) ----------
+  function persist(){
+    try{
+      localStorage.setItem('raporto-gjakoven-reports', JSON.stringify(reports));
+    }catch(e){ /* storage unavailable — demo continues in-memory only */ }
+  }
+  function restore(){
+    try{
+      var saved = localStorage.getItem('raporto-gjakoven-reports');
+      if(saved){
+        var parsed = JSON.parse(saved);
+        if(Array.isArray(parsed) && parsed.length) reports = parsed;
+      }
+    }catch(e){ /* ignore */ }
+  }
+
+  // ---------- mobile menu ----------
+  document.getElementById('menuToggle').addEventListener('click', function(){
+    var nav = document.getElementById('navLinks');
+    if(nav.style.display === 'flex'){
+      nav.style.display = 'none';
+    } else {
+      nav.style.display = 'flex';
+      nav.style.flexDirection = 'column';
+      nav.style.position = 'absolute';
+      nav.style.top = '64px';
+      nav.style.right = '24px';
+      nav.style.background = 'var(--paper)';
+      nav.style.border = '1px solid var(--line)';
+      nav.style.borderRadius = '10px';
+      nav.style.padding = '14px 18px';
+      nav.style.gap = '14px';
+      nav.style.boxShadow = '0 10px 24px rgba(0,0,0,0.12)';
+    }
+  });
+
+  // ---------- login screen ----------
+  var loginScreen = document.getElementById('loginScreen');
+  var navLinksEl = document.getElementById('navLinks');
+
+  function closeMobileMenu(){
+    navLinksEl.style.display = '';
+  }
+
+  function openLogin(){
+    loginScreen.hidden = false;
+    document.body.style.overflow = 'hidden';
+    closeMobileMenu();
+    var emailField = document.getElementById('loginEmail');
+    if(emailField) emailField.focus();
+  }
+  function closeLogin(){
+    loginScreen.hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('navLoginBtn').addEventListener('click', openLogin);
+  document.getElementById('loginClose').addEventListener('click', closeLogin);
+  loginScreen.addEventListener('click', function(e){
+    if(e.target === loginScreen) closeLogin();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && !loginScreen.hidden) closeLogin();
+  });
+
+  document.getElementById('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    showToast('Hyrja është vetëm demonstrim në këtë prototip.');
+    closeLogin();
+  });
+  document.getElementById('loginSignupLink').addEventListener('click', function(e){
+    e.preventDefault();
+    showToast('Krijimi i llogarisë do të shtohet më vonë.');
+  });
+
+  // ---------- nav: ballina / raportimet ----------
+  document.getElementById('navBallina').addEventListener('click', function(e){
+    e.preventDefault();
+    closeLogin();
+    closeMobileMenu();
+    document.getElementById('top').scrollIntoView({behavior:'smooth', block:'start'});
+  });
+  document.getElementById('navRaportimet').addEventListener('click', function(e){
+    e.preventDefault();
+    closeLogin();
+    closeMobileMenu();
+    document.getElementById('raportet').scrollIntoView({behavior:'smooth', block:'start'});
+  });
+
+  // ---------- init ----------
+  restore();
+  renderStats();
+  renderMap();
+  renderList();
+})();
+</script>
+</body>
+</html>
