@@ -22,6 +22,12 @@ export default function AdminNav() {
       >
         Çështje kronike
       </Link>
+      <Link
+        href="/admin/departments"
+        className={`filter-chip${pathname === "/admin/departments" ? " selected" : ""}`}
+      >
+        Departamentet
+      </Link>
     </div>
   );
 }

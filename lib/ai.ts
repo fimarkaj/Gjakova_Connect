@@ -3,7 +3,11 @@ import OpenAI from "openai";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { CATEGORIES } from "@/lib/types";
 
-const openai = new OpenAI({ apiKey: process.env.AI_API_KEY, baseURL: process.env.AI_BASE_URL });
+export const openai = new OpenAI({ apiKey: process.env.AI_API_KEY, baseURL: process.env.AI_BASE_URL });
+
+// The one chat model every completion in this codebase uses. Confirmed
+// available on the configured AI_BASE_URL proxy; gpt-4o-mini is not.
+export const AI_MODEL = "gpt-5-mini";
 
 export class AIBudgetExceededError extends Error {
   constructor(message = "AI proxy budget exceeded") {
@@ -12,7 +16,7 @@ export class AIBudgetExceededError extends Error {
   }
 }
 
-function isBudgetExceeded(err: unknown): boolean {
+export function isBudgetExceeded(err: unknown): boolean {
   if (!err || typeof err !== "object") return false;
   const status = (err as { status?: number }).status;
   if (status !== 429) return false;
@@ -53,11 +57,11 @@ export type DuplicateMatch = {
 const NEARBY_RADIUS_METERS = 250;
 const DUPLICATE_SIMILARITY_THRESHOLD = 0.85;
 const LOOKBACK_DAYS = 90;
-const MAX_DESCRIPTION_CHARS = 500;
+export const MAX_DESCRIPTION_CHARS = 500;
 
 type OpenAIUsage = { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | null | undefined;
 
-function logUsage(label: string, usage: OpenAIUsage) {
+export function logUsage(label: string, usage: OpenAIUsage) {
   if (!usage) return;
   console.log(
     `[ai] ${label} — prompt_tokens=${usage.prompt_tokens ?? "?"} completion_tokens=${usage.completion_tokens ?? "?"} total_tokens=${usage.total_tokens ?? "?"}`
@@ -66,10 +70,7 @@ function logUsage(label: string, usage: OpenAIUsage) {
 
 /**
  * Classifies a report's description into one of the app's category ids and
- * an urgency level with a strict JSON schema response. Uses gpt-5-mini
- * (confirmed available and working on the configured AI_BASE_URL proxy) —
- * not gpt-4o-mini as originally specced, but verified to return
- * well-formed, schema-conformant classifications.
+ * an urgency level with a strict JSON schema response.
  */
 export async function classifyReport(description: string): Promise<ClassificationResult> {
   const truncated = description.slice(0, MAX_DESCRIPTION_CHARS);
@@ -77,7 +78,7 @@ export async function classifyReport(description: string): Promise<Classificatio
   let completion;
   try {
     completion = await openai.chat.completions.create({
-      model: "gpt-5-mini",
+      model: AI_MODEL,
       messages: [
         {
           role: "system",

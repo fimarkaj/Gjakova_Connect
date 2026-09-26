@@ -67,3 +67,83 @@ export async function sendReportStatusEmail(params: {
     return { sent: false, demo: false };
   }
 }
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
+ * Sends a formatted copy of a report to a department's contact email, with
+ * the photo shown inline and (if provided) attached as a file. Unlike
+ * sendReportStatusEmail, this throws on failure — the caller (the manual
+ * "Send to Department" route) needs to distinguish success from failure to
+ * decide whether to write the report_department_sends audit row and what
+ * error to surface to the clerk who clicked the button.
+ */
+export async function sendDepartmentReportEmail(params: {
+  to: string;
+  departmentName: string;
+  ticketCode: string;
+  categoryLabel: string;
+  area: string | null;
+  description: string;
+  mapsUrl: string | null;
+  photoUrl: string | null;
+  photoAttachment: { filename: string; content: Buffer; contentType: string } | null;
+}): Promise<{ sent: boolean; demo: boolean }> {
+  const { to, departmentName, ticketCode, categoryLabel, area, description, mapsUrl, photoUrl, photoAttachment } =
+    params;
+
+  const subject = `[Gjakova Connect] ${ticketCode} — ${categoryLabel} — ${area || "Pa zonë"}`;
+
+  const textLines = [
+    `Raportim i ri për ${departmentName}.`,
+    ``,
+    `Kodi: ${ticketCode}`,
+    `Kategoria: ${categoryLabel}`,
+    `Zona: ${area || "Pa zonë"}`,
+    ``,
+    `Përshkrimi:`,
+    description,
+  ];
+  if (mapsUrl) textLines.push(``, `Vendndodhja: ${mapsUrl}`);
+  const text = textLines.join("\n");
+
+  const htmlParts = [
+    `<p>Raportim i ri për <strong>${escapeHtml(departmentName)}</strong>.</p>`,
+    `<p><strong>Kodi:</strong> ${escapeHtml(ticketCode)}<br/>` +
+      `<strong>Kategoria:</strong> ${escapeHtml(categoryLabel)}<br/>` +
+      `<strong>Zona:</strong> ${escapeHtml(area || "Pa zonë")}</p>`,
+    `<p><strong>Përshkrimi:</strong><br/>${escapeHtml(description).replace(/\n/g, "<br/>")}</p>`,
+  ];
+  if (mapsUrl) {
+    htmlParts.push(`<p><a href="${mapsUrl}">Shiko vendndodhjen në hartë</a></p>`);
+  }
+  if (photoUrl) {
+    htmlParts.push(`<p><img src="${photoUrl}" alt="Foto e raportimit" style="max-width:480px;border-radius:8px;" /></p>`);
+  }
+  const html = htmlParts.join("\n");
+
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.log(
+      `[DEMO MODE — email not actually sent, missing GMAIL_USER/GMAIL_APP_PASSWORD] to=${to} subject="${subject}"\n${text}`
+    );
+    return { sent: false, demo: true };
+  }
+
+  await transporter.sendMail({
+    from: `Gjakova Connect <${process.env.GMAIL_USER}>`,
+    to,
+    subject,
+    text,
+    html,
+    attachments: photoAttachment ? [photoAttachment] : undefined,
+  });
+  return { sent: true, demo: false };
+}

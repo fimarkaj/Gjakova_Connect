@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
@@ -13,7 +14,7 @@ import {
   categoryLabel,
   urgencyRank,
 } from "@/lib/types";
-import type { Report, ReportStatus } from "@/lib/types";
+import type { Department, DepartmentSend, Report, ReportStatus } from "@/lib/types";
 import { AREA_WEIGHTS } from "@/lib/silence-map";
 import { formatClock, formatDate, timeAgo } from "@/lib/time";
 import AdminNav from "./AdminNav";
@@ -73,6 +74,13 @@ export default function AdminClient() {
   const [notifyError, setNotifyError] = useState<string | null>(null);
   const [notifySent, setNotifySent] = useState<string | null>(null);
 
+  // Departments for the "Send to Department" control — loaded once, reused
+  // across every report detail panel.
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [detailSends, setDetailSends] = useState<{ reportId: string; sends: DepartmentSend[] } | null>(null);
+  const [sendBusy, setSendBusy] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+
   const searchParams = useSearchParams();
   const deepLinkHandled = useRef(false);
 
@@ -95,6 +103,18 @@ export default function AdminClient() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    fetch("/api/admin/departments")
+      .then((res) => res.json())
+      .then((body) => {
+        if (body?.departments) setDepartments(body.departments as Department[]);
+      })
+      .catch(() => {
+        // The send-to-department control just stays empty if this fails —
+        // staff can still change status and use the notify-citizen flow.
+      });
+  }, []);
 
   // Live updates: new submissions and status changes land here without a manual
   // refresh. The refresh button stays as a fallback if the socket ever drops.
@@ -179,16 +199,49 @@ export default function AdminClient() {
     setNotifyError(null);
     setNotifySent(null);
     setDetailEmail(null);
+    setSendError(null);
+    setDetailSends(null);
     fetch(`/api/admin/reports/${id}`)
       .then((res) => res.json())
       .then((body) => {
         if (body?.report) {
           setDetailEmail({ reportId: id, notifyEmail: body.report.notify_email ?? null });
         }
+        setDetailSends({ reportId: id, sends: (body?.sends ?? []) as DepartmentSend[] });
       })
       .catch(() => {
         // Detail panel still works without it — the notify button just stays hidden.
       });
+  }
+
+  async function sendToDepartment(report: Report, departmentId: string) {
+    setSendBusy(true);
+    setSendError(null);
+    try {
+      const res = await fetch(`/api/admin/reports/${report.id}/send-department`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ departmentId }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setSendError(body.error || "Diçka shkoi keq.");
+        return;
+      }
+      if (body.demo) {
+        setSendError("Nuk u dërgua me të vërtetë — GMAIL_USER/GMAIL_APP_PASSWORD mungon (mënyra demo).");
+        return;
+      }
+      // Refresh the send history so "Sent to X on <date>" reflects this send.
+      fetch(`/api/admin/reports/${report.id}`)
+        .then((r) => r.json())
+        .then((b) => setDetailSends({ reportId: report.id, sends: (b?.sends ?? []) as DepartmentSend[] }))
+        .catch(() => {});
+    } catch {
+      setSendError("Diçka shkoi keq — provo përsëri.");
+    } finally {
+      setSendBusy(false);
+    }
   }
 
   async function sendManualNotify(report: Report, message?: string) {
@@ -423,6 +476,11 @@ export default function AdminClient() {
           notifyError={notifyError}
           notifySent={notifySent}
           onSendNotify={(message) => sendManualNotify(selected, message)}
+          departments={departments}
+          sends={detailSends?.reportId === selected.id ? detailSends.sends : []}
+          sendBusy={sendBusy}
+          sendError={sendError}
+          onSendDepartment={(departmentId) => sendToDepartment(selected, departmentId)}
         />
       )}
     </section>
@@ -442,6 +500,11 @@ function ReportDetail({
   notifyError,
   notifySent,
   onSendNotify,
+  departments,
+  sends,
+  sendBusy,
+  sendError,
+  onSendDepartment,
 }: {
   report: Report;
   duplicateOf: Report | null;
@@ -455,10 +518,24 @@ function ReportDetail({
   notifyError: string | null;
   notifySent: string | null;
   onSendNotify: (message?: string) => void;
+  departments: Department[];
+  sends: DepartmentSend[];
+  sendBusy: boolean;
+  sendError: string | null;
+  onSendDepartment: (departmentId: string) => void;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const [notifyMessage, setNotifyMessage] = useState("");
   const [notifyOpen, setNotifyOpen] = useState(false);
+  const [deptId, setDeptId] = useState("");
+
+  // Default to the department matching this report's category, falling back
+  // to "Administrata" (the catch-all department) if none matches yet.
+  useEffect(() => {
+    const match = departments.find((d) => d.category === report.category);
+    const fallback = departments.find((d) => d.category === "administrata");
+    setDeptId(match?.id ?? fallback?.id ?? departments[0]?.id ?? "");
+  }, [report.id, departments, report.category]);
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -589,7 +666,83 @@ function ReportDetail({
             {notifyError && <div className="confirm-resolved-error detail-error">{notifyError}</div>}
           </div>
         )}
+
+        {departments.length > 0 && (
+          <SendToDepartment
+            departments={departments}
+            sends={sends}
+            deptId={deptId}
+            onChangeDeptId={setDeptId}
+            busy={sendBusy}
+            error={sendError}
+            onSend={() => onSendDepartment(deptId)}
+          />
+        )}
       </div>
+    </div>
+  );
+}
+
+function SendToDepartment({
+  departments,
+  sends,
+  deptId,
+  onChangeDeptId,
+  busy,
+  error,
+  onSend,
+}: {
+  departments: Department[];
+  sends: DepartmentSend[];
+  deptId: string;
+  onChangeDeptId: (id: string) => void;
+  busy: boolean;
+  error: string | null;
+  onSend: () => void;
+}) {
+  const selectedDept = departments.find((d) => d.id === deptId) ?? null;
+  const lastSend = sends.find((s) => s.department_id === deptId) ?? null;
+
+  return (
+    <div className="field detail-send-dept">
+      <label>Dërgo te departamenti</label>
+      <select className="admin-select" value={deptId} onChange={(e) => onChangeDeptId(e.target.value)}>
+        {departments.map((d) => (
+          <option key={d.id} value={d.id}>
+            {d.name}
+          </option>
+        ))}
+      </select>
+
+      {selectedDept && !selectedDept.contact_email && (
+        <div className="auto-cat-note">
+          <span>
+            Ky departament nuk ka email kontakti. <Link href="/admin/departments">Shtoje këtu</Link>.
+          </span>
+        </div>
+      )}
+
+      <div className="loc-row">
+        <button
+          type="button"
+          className="btn-geo btn-geo-full"
+          disabled={busy || !selectedDept?.contact_email}
+          onClick={onSend}
+        >
+          {busy ? "Duke dërguar…" : "Dërgo email"}
+        </button>
+      </div>
+
+      {lastSend && (
+        <div className="geo-status">
+          Dërguar te {selectedDept?.name} më {formatDate(lastSend.sent_at, true)} ·{" "}
+          <button type="button" className="link-button" onClick={onSend}>
+            dërgo përsëri
+          </button>
+        </div>
+      )}
+
+      {error && <div className="confirm-resolved-error detail-error">{error}</div>}
     </div>
   );
 }

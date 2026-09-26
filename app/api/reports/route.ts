@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { classifyReport, findDuplicates, AIBudgetExceededError } from "@/lib/ai";
+import { assessReport, type QualityAssessment } from "@/lib/quality";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -23,7 +24,14 @@ export async function POST(req: NextRequest) {
   // falls back to a distance check when area is unset).
   const { data: inserted, error: insertError } = await supabaseAdmin
     .from("reports")
-    .insert({ description, latitude, longitude, photo_url: photoUrl, notify_email: notifyEmail })
+    .insert({
+      description,
+      latitude,
+      longitude,
+      photo_url: photoUrl,
+      notify_email: notifyEmail,
+      quality_flagged: false,
+    })
     .select()
     .single();
 
@@ -32,12 +40,47 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Diçka shkoi keq — provo përsëri." }, { status: 500 });
   }
 
+  // Quality gate. Runs before classification and duplicate detection so an
+  // unusable report never spends tokens on the rest of the pipeline. A gate
+  // failure must never block a citizen's submission, so the report falls
+  // through unflagged (quality_flagged stays false from the insert above).
+  let row = inserted;
+  let quality: QualityAssessment | null = null;
+  try {
+    quality = await assessReport(description);
+  } catch (err) {
+    console.warn("reports POST: quality assessment unavailable — continuing unflagged", err);
+  }
+
+  if (quality) {
+    // Written in its own update rather than folded into the enrichment update
+    // below, so the verdict is stored even if classification later fails.
+    const { data: assessed, error: qualityError } = await supabaseAdmin
+      .from("reports")
+      .update({
+        quality_flagged: !quality.usable,
+        flag_reason: quality.flag_reason,
+        normalized_description: quality.normalized_description,
+        quality_confidence: quality.confidence,
+      })
+      .eq("id", inserted.id)
+      .select()
+      .single();
+
+    if (qualityError) console.error("reports POST: quality update failed", qualityError);
+    if (assessed) row = assessed;
+
+    if (!quality.usable) {
+      return NextResponse.json({ report: row, duplicate: null });
+    }
+  }
+
   // The report already exists at this point — if classification or duplicate
   // detection fails, the submission still succeeds, just without enrichment.
   try {
     const [classification, duplicate] = await Promise.all([
       classifyReport(description),
-      findDuplicates({ id: inserted.id, description, latitude, longitude, area: inserted.area }),
+      findDuplicates({ id: row.id, description, latitude, longitude, area: row.area }),
     ]);
 
     const { data: updated, error: updateError } = await supabaseAdmin
@@ -47,13 +90,13 @@ export async function POST(req: NextRequest) {
         urgency: classification.urgency,
         duplicate_of: duplicate?.reportId ?? null,
       })
-      .eq("id", inserted.id)
+      .eq("id", row.id)
       .select()
       .single();
 
     if (updateError) {
       console.error("reports POST: enrichment update failed", updateError);
-      return NextResponse.json({ report: inserted, duplicate: null });
+      return NextResponse.json({ report: row, duplicate: null });
     }
 
     return NextResponse.json({ report: updated, duplicate });
@@ -63,6 +106,6 @@ export async function POST(req: NextRequest) {
     } else {
       console.error("reports POST: AI pipeline failed", err);
     }
-    return NextResponse.json({ report: inserted, duplicate: null });
+    return NextResponse.json({ report: row, duplicate: null });
   }
 }

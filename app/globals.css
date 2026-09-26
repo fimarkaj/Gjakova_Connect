@@ -1303,6 +1303,15 @@ footer a:hover {
   color: var(--ink-soft);
   margin-bottom: 10px;
 }
+.dept-add {
+  margin-top: 18px;
+}
+.dept-add-form {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  padding: 16px;
+}
 .admin-muted {
   color: var(--ink-soft);
   font-style: italic;
@@ -1758,6 +1767,17 @@ footer a:hover {
   }
   .chronic-table .row-chronic td:first-child {
     box-shadow: none;
+  }
+
+  /* departments: name, category | updated, email (full-width, editable) */
+  .dept-table td:nth-child(1) { grid-area: 1 / 1 / 2 / 3; font-weight: 700; }
+  .dept-table td:nth-child(2) { grid-area: 2 / 1; font-size: 13px; color: var(--ink-soft); }
+  .dept-table td:nth-child(4) { grid-area: 2 / 2; justify-self: end; font-size: 13px; }
+  .dept-table td:nth-child(3) { grid-area: 3 / 1 / 4 / 3; }
+  .dept-table td[data-label]::before {
+    content: attr(data-label) ": ";
+    color: var(--ink-soft);
+    font-weight: 600;
   }
   .chronic-ticket-list {
     max-width: none;

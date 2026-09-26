@@ -17,7 +17,22 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: "Raportimi nuk u gjet." }, { status: 404 });
   }
 
-  return NextResponse.json({ report });
+  // Send history for the "Send to Department" control — lets /admin show
+  // "Sent to X on <date>" without a separate round trip.
+  const { data: sendsRaw } = await supabaseAdmin
+    .from("report_department_sends")
+    .select("department_id, sent_to_email, sent_at, departments(name)")
+    .eq("report_id", params.id)
+    .order("sent_at", { ascending: false });
+
+  const sends = (sendsRaw ?? []).map((s) => ({
+    department_id: s.department_id as string,
+    sent_to_email: s.sent_to_email as string,
+    sent_at: s.sent_at as string,
+    department_name: (Array.isArray(s.departments) ? s.departments[0]?.name : (s.departments as { name: string } | null)?.name) ?? null,
+  }));
+
+  return NextResponse.json({ report, sends });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {

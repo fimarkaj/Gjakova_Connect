@@ -47,6 +47,21 @@ export const CATEGORIES: { id: string; label: string; scope: string }[] = [
   { id: "inspektorati", label: "Inspektorati", scope: "violations of municipal rules, noise, occupied sidewalks, unhygienic businesses, sanitary and construction inspections" },
 ];
 
+export type Department = {
+  id: string;
+  name: string;
+  category: string | null;
+  contact_email: string | null;
+  updated_at: string;
+};
+
+export type DepartmentSend = {
+  department_id: string;
+  department_name: string | null;
+  sent_to_email: string;
+  sent_at: string;
+};
+
 export function categoryLabel(id: string | null): string {
   return CATEGORIES.find((c) => c.id === id)?.label ?? "Tjetër";
 }

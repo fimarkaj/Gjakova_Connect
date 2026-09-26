@@ -165,3 +165,84 @@ update public.reports set category = case category
     when 'tjeter' then 'administrata'
   end
 where category in ('rruge', 'drite', 'mbeturina', 'uji', 'gjelberim', 'tjeter');
+
+-- ---------- AI quality gate ----------
+-- Written by assessReport() (lib/quality.ts) on submission, before
+-- classification and duplicate detection run. `description` is never touched:
+-- the citizen's original text is permanent and stays the column every public
+-- view reads. The normalized restatement lives alongside it.
+--
+-- These columns are deliberately left out of the anon/authenticated grant and
+-- the realtime publication below — flag_reason is written for municipal staff,
+-- not for the submitter. Add them to both lists if /admin ever needs to read
+-- them with the anon key.
+alter table public.reports add column if not exists normalized_description text;
+alter table public.reports add column if not exists quality_flagged boolean default false;
+alter table public.reports add column if not exists flag_reason text;
+alter table public.reports add column if not exists quality_confidence double precision;
+
+-- ---------- departments: contact routing ----------
+-- One row per municipal department (see CATEGORIES in lib/types.ts for the
+-- matching category ids/labels). `contact_email` is filled in by staff from
+-- /admin/departments; report emails are only ever sent when a clerk clicks
+-- "Send to Department" on a report, never automatically.
+create table if not exists public.departments (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  category text,
+  contact_email text,
+  updated_at timestamptz not null default now()
+);
+
+-- One department per category keeps the "default department for this
+-- report's category" lookup in /admin unambiguous. A plain (non-partial)
+-- unique index is required here so `insert ... on conflict (category)`
+-- below can target it; Postgres already treats multiple NULLs as distinct,
+-- so departments without a category still don't collide.
+create unique index if not exists departments_category_key
+  on public.departments(category);
+
+drop trigger if exists trg_departments_updated_at on public.departments;
+create trigger trg_departments_updated_at
+  before update on public.departments
+  for each row
+  execute function public.set_updated_at();
+
+-- Audit log: every time staff send a report to a department, regardless of
+-- whether the department's email later changes.
+create table if not exists public.report_department_sends (
+  id uuid primary key default gen_random_uuid(),
+  report_id uuid not null references public.reports(id) on delete cascade,
+  department_id uuid not null references public.departments(id) on delete cascade,
+  sent_at timestamptz not null default now(),
+  sent_to_email text not null
+);
+
+create index if not exists report_department_sends_report_idx
+  on public.report_department_sends(report_id);
+
+-- Admin-only data: no anon/authenticated policies are defined, so RLS denies
+-- them entirely. Only supabaseAdmin (service_role, bypasses RLS) reads/writes
+-- these tables, via /api/admin/* routes gated by middleware's Basic Auth.
+alter table public.departments enable row level security;
+alter table public.report_department_sends enable row level security;
+
+-- Seed one department per current category, named after Komuna e Gjakovës's
+-- Drejtoria për Shërbime Publike structure. contact_email is left NULL —
+-- staff fill it in from /admin/departments before any send will work.
+insert into public.departments (name, category, contact_email)
+values
+  ('Drejtoria e Administratës', 'administrata', null),
+  ('Drejtoria e Shëndetësisë dhe Mirëqenies Sociale', 'shendetesi', null),
+  ('Drejtoria e Arsimit', 'arsim', null),
+  ('Drejtoria e Buxhetit dhe Financave', 'buxhet', null),
+  ('Drejtoria e Zhvillimit Ekonomik', 'zhvillim_ekonomik', null),
+  ('Drejtoria e Urbanizmit dhe Planifikimit', 'urbanizem', null),
+  ('Drejtoria e Bujqësisë, Pylltarisë dhe Zhvillimit Rural', 'bujqesi', null),
+  ('Drejtoria e Shërbimeve Publike', 'sherbime_publike', null),
+  ('Drejtoria e Infrastrukturës', 'infrastruktura', null),
+  ('Drejtoria e Kulturës, Rinisë dhe Sportit', 'kulture', null),
+  ('Drejtoria e Mbrojtjes dhe Shpëtimit', 'mbrojtje_shpetim', null),
+  ('Drejtoria e Kadastrit dhe Gjeodezisë', 'kadastri', null),
+  ('Drejtoria e Inspektoratit', 'inspektorati', null)
+on conflict (category) do nothing;
