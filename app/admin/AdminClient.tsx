@@ -15,7 +15,7 @@ import {
   urgencyRank,
 } from "@/lib/types";
 import type { Department, DepartmentSend, Report, ReportStatus } from "@/lib/types";
-import { AREA_WEIGHTS } from "@/lib/silence-map";
+import { AREA_POPULATIONS } from "@/lib/silence-map";
 import { formatClock, formatDate, timeAgo } from "@/lib/time";
 import AdminNav from "./AdminNav";
 import { InlineError, TableSkeleton } from "./AdminStates";
@@ -158,7 +158,7 @@ export default function AdminClient() {
   }, [reports, searchParams]);
 
   const areaOptions = useMemo(() => {
-    const names = new Set(Object.keys(AREA_WEIGHTS));
+    const names = new Set(Object.keys(AREA_POPULATIONS));
     for (const r of reports) if (r.area) names.add(r.area);
     return Array.from(names).sort((a, b) => a.localeCompare(b, "sq"));
   }, [reports]);

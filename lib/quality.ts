@@ -35,12 +35,14 @@ When usable is true, flag_reason is null and normalized_description restates the
 this exact structure, in Albanian:
   Problemi: <what the problem is, one sentence>
   Vendndodhja: <location detail found in the text, or "Nuk është specifikuar">
-  Ndikimi: <who or what it affects, one sentence>
+  Ndikimi: <who or what it affects, one sentence, or "Nuk është specifikuar">
 
 Hard rules for normalization:
 - Use only information present in the citizen's text. Never add a cause, a severity, a
   measurement, a street name, or a time that the citizen did not write.
 - If the text contains no location detail at all, write "Nuk është specifikuar".
+- If the citizen's text does not say who or what is affected, write "Nuk është specifikuar"
+  for Ndikimi. Do not infer impact from the type of problem.
 - Keep it factual and neutral. Strip insults and emotion, keep the facts they carried.
 - Maximum 60 words total.
 
