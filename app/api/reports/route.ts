@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { classifyReport, findDuplicates, AIBudgetExceededError } from "@/lib/ai";
-import { CATEGORIES } from "@/lib/types";
-import { AREA_WEIGHTS } from "@/lib/silence-map";
-
-const VALID_CATEGORY_IDS = new Set(CATEGORIES.map((c) => c.id));
-const VALID_AREAS = new Set(Object.keys(AREA_WEIGHTS));
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -13,25 +8,17 @@ export async function POST(req: NextRequest) {
   const latitude: number | undefined = body?.latitude;
   const longitude: number | undefined = body?.longitude;
   const photoUrl: string | undefined = body?.photoUrl;
-  const category: string | undefined = body?.category;
-  const area: string | undefined = body?.area;
 
-  if (
-    !description ||
-    latitude == null ||
-    longitude == null ||
-    !photoUrl ||
-    !category ||
-    !area ||
-    !VALID_CATEGORY_IDS.has(category) ||
-    !VALID_AREAS.has(area)
-  ) {
+  if (!description || latitude == null || longitude == null || !photoUrl) {
     return NextResponse.json({ error: "Kërkesë e pavlefshme." }, { status: 400 });
   }
 
+  // category/area are no longer collected from the submitter — category is
+  // assigned below by classifyReport, and area stays null (findDuplicates
+  // falls back to a distance check when area is unset).
   const { data: inserted, error: insertError } = await supabaseAdmin
     .from("reports")
-    .insert({ description, latitude, longitude, photo_url: photoUrl, category, area })
+    .insert({ description, latitude, longitude, photo_url: photoUrl })
     .select()
     .single();
 

@@ -4,35 +4,6 @@ import { useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { addMyTicket } from "@/lib/my-tickets";
 import Toast from "@/components/Toast";
-import { CATEGORIES } from "@/lib/types";
-import { AREA_WEIGHTS } from "@/lib/silence-map";
-
-const CITY_AREAS: { id: string; label: string }[] = [
-  { id: "Qendra", label: "Qendra (City Center)" },
-  { id: "Çarshia e Vjetër", label: "Çarshia e Vjetër (Old Bazaar)" },
-  { id: "Bahçallëk", label: "Bahçallëk" },
-  { id: "Sopot", label: "Sopot" },
-  { id: "Ura e Shejtë", label: "Ura e Shejtë" },
-  { id: "Kodra e Diellit", label: "Kodra e Diellit" },
-  { id: "Rruga e Prizrenit", label: "Rruga e Prizrenit" },
-  { id: "Krena", label: "Krena (riverside area)" },
-];
-
-const VILLAGE_AREAS: { id: string; label: string }[] = [
-  { id: "Damjan", label: "Damjan" },
-  { id: "Ujz", label: "Ujz" },
-  { id: "Babaj i Bokës", label: "Babaj i Bokës" },
-  { id: "Lipovec", label: "Lipovec" },
-];
-
-// Sanity check that the dropdown options above stay in sync with the
-// canonical area list AREA_WEIGHTS uses for silence-map scoping.
-if (process.env.NODE_ENV !== "production") {
-  const known = new Set(Object.keys(AREA_WEIGHTS));
-  for (const { id } of [...CITY_AREAS, ...VILLAGE_AREAS]) {
-    if (!known.has(id)) console.warn(`RaportoForm: area "${id}" is not in AREA_WEIGHTS`);
-  }
-}
 
 const PinMap = dynamic(() => import("./PinMap"), {
   ssr: false,
@@ -70,8 +41,6 @@ export default function RaportoForm() {
   const [flyTo, setFlyTo] = useState<(LatLng & { nonce: number }) | null>(null);
   const [geoStatus, setGeoStatus] = useState("");
 
-  const [category, setCategory] = useState("");
-  const [area, setArea] = useState("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "" });
@@ -132,7 +101,7 @@ export default function RaportoForm() {
   }
 
   const canSubmit = Boolean(
-    photoFile && pin && description.trim().length > 2 && category && area && !submitting
+    photoFile && pin && description.trim().length > 2 && !submitting
   );
 
   async function handleSubmit() {
@@ -156,8 +125,6 @@ export default function RaportoForm() {
           latitude: pin.lat,
           longitude: pin.lng,
           photoUrl: photoData.photoUrl,
-          category,
-          area,
         }),
       });
       const data = await res.json();
@@ -169,8 +136,6 @@ export default function RaportoForm() {
 
       resetPhoto();
       setDescription("");
-      setCategory("");
-      setArea("");
       setPin(null);
       setFlyTo(null);
       setGeoStatus("");
@@ -306,50 +271,8 @@ export default function RaportoForm() {
                 <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" />
               </svg>
               <span>
-                AI do të sugjerojë një kategori bazuar në përshkrimin tënd — zgjedhja jote
-                më poshtë është vetëm pikënisja.
+                AI do ta kategorizojë automatikisht raportimin bazuar në përshkrimin tënd.
               </span>
-            </div>
-
-            <div className="field">
-              <label>
-                Kategoria <span className="hint">e detyrueshme</span>
-              </label>
-              <select value={category} onChange={(e) => setCategory(e.target.value)} required>
-                <option value="" disabled>
-                  — Zgjidh kategorinë —
-                </option>
-                {CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="field">
-              <label>
-                Zona <span className="hint">e detyrueshme</span>
-              </label>
-              <select value={area} onChange={(e) => setArea(e.target.value)} required>
-                <option value="" disabled>
-                  — Zgjidh zonën —
-                </option>
-                <optgroup label="Qyteti">
-                  {CITY_AREAS.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.label}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Fshatra">
-                  {VILLAGE_AREAS.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.label}
-                    </option>
-                  ))}
-                </optgroup>
-              </select>
             </div>
 
             <div className="field">
