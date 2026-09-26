@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { classifyReport, findDuplicates, AIBudgetExceededError } from "@/lib/ai";
 import { assessReport, type QualityAssessment } from "@/lib/quality";
+import { resolveArea } from "@/lib/areas";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -19,9 +20,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Formati i email-it nuk është i vlefshëm." }, { status: 400 });
   }
 
-  // category/area are no longer collected from the submitter — category is
-  // assigned below by classifyReport, and area stays null (findDuplicates
-  // falls back to a distance check when area is unset).
+  // category is no longer collected from the submitter — it's assigned below
+  // by classifyReport. area is resolved from the pin here; it stays null for
+  // a pin too far from any known centroid (findDuplicates falls back to a
+  // distance check when area is unset).
+  const area = resolveArea(latitude, longitude);
+  if (area === null) {
+    console.log("reports POST: could not resolve area for pin", { latitude, longitude });
+  }
+
   const { data: inserted, error: insertError } = await supabaseAdmin
     .from("reports")
     .insert({
@@ -31,6 +38,7 @@ export async function POST(req: NextRequest) {
       photo_url: photoUrl,
       notify_email: notifyEmail,
       quality_flagged: false,
+      area,
     })
     .select()
     .single();
