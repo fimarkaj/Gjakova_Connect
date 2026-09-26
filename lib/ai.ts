@@ -83,8 +83,10 @@ export async function classifyReport(description: string): Promise<Classificatio
           role: "system",
           content:
             "You classify municipal issue reports submitted by residents of Gjakova, Kosovo. " +
-            "Descriptions are written in Albanian. Pick the single best-fitting category, " +
-            "estimate urgency for public safety/services, and give your confidence in the category choice.",
+            "Descriptions are written in Albanian. Pick the single best-fitting category " +
+            "(the municipal department responsible), estimate urgency for public safety/services, " +
+            "and give your confidence in the category choice.\n\nCategories:\n" +
+            CATEGORIES.map((c) => `- ${c.id} (${c.label}): ${c.scope}`).join("\n"),
         },
         { role: "user", content: `Report description: "${truncated}"` },
       ],

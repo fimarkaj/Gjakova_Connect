@@ -152,3 +152,16 @@ alter publication supabase_realtime set table public.reports (
   id, ticket_code, description, category, urgency, status, area,
   latitude, longitude, photo_url, duplicate_of, created_at, updated_at
 );
+
+-- ---------- categories: municipal departments ----------
+-- Categories now map to the municipality's departments (see CATEGORIES in
+-- lib/types.ts). Remap rows classified under the old issue-type ids.
+update public.reports set category = case category
+    when 'rruge' then 'infrastruktura'
+    when 'drite' then 'infrastruktura'
+    when 'mbeturina' then 'sherbime_publike'
+    when 'uji' then 'sherbime_publike'
+    when 'gjelberim' then 'urbanizem'
+    when 'tjeter' then 'administrata'
+  end
+where category in ('rruge', 'drite', 'mbeturina', 'uji', 'gjelberim', 'tjeter');

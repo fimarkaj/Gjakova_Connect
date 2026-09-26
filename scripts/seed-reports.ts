@@ -57,66 +57,66 @@ type Seed = {
 
 const SEEDS: Seed[] = [
   // Qendra (7)
-  { area: "Qendra", category: "rruge", urgency: "high", status: "submitted", daysAgo: 3, description: "Gropë e thellë në mes të rrugës para Komunës, makinat po e anashkalojnë në korsinë tjetër." },
-  { area: "Qendra", category: "drite", urgency: "medium", status: "in_progress", daysAgo: 11, description: "Tri llamba të fikura në sheshin qendror, shumë errësirë pas orës 20:00." },
-  { area: "Qendra", category: "mbeturina", urgency: "medium", status: "resolved", daysAgo: 24, description: "Kontejnerët pranë stacionit të autobusëve janë plot që prej tre ditësh." },
-  { area: "Qendra", category: "rruge", urgency: "low", status: "resolved", daysAgo: 38, description: "Pllakat e trotuarit janë të lirshme te Rruga Nëna Terezë — someone is going to trip." },
-  { area: "Qendra", category: "tjeter", urgency: "low", status: "submitted", daysAgo: 52, description: "Semafori te kryqëzimi kryesor ndërron shumë shpejt për këmbësorët." },
-  { area: "Qendra", category: "uji", urgency: "high", status: "resolved", daysAgo: 67, description: "Water main leak on the street behind the post office, water has been running for hours." },
-  { area: "Qendra", category: "gjelberim", urgency: "low", status: "in_progress", daysAgo: 81, description: "Pemët në parkun e qytetit kanë nevojë për krasitje, degët prekin telat elektrikë." },
+  { area: "Qendra", category: "infrastruktura", urgency: "high", status: "submitted", daysAgo: 3, description: "Gropë e thellë në mes të rrugës para Komunës, makinat po e anashkalojnë në korsinë tjetër." },
+  { area: "Qendra", category: "infrastruktura", urgency: "medium", status: "in_progress", daysAgo: 11, description: "Tri llamba të fikura në sheshin qendror, shumë errësirë pas orës 20:00." },
+  { area: "Qendra", category: "sherbime_publike", urgency: "medium", status: "resolved", daysAgo: 24, description: "Kontejnerët pranë stacionit të autobusëve janë plot që prej tre ditësh." },
+  { area: "Qendra", category: "infrastruktura", urgency: "low", status: "resolved", daysAgo: 38, description: "Pllakat e trotuarit janë të lirshme te Rruga Nëna Terezë — someone is going to trip." },
+  { area: "Qendra", category: "infrastruktura", urgency: "low", status: "submitted", daysAgo: 52, description: "Semafori te kryqëzimi kryesor ndërron shumë shpejt për këmbësorët." },
+  { area: "Qendra", category: "sherbime_publike", urgency: "high", status: "resolved", daysAgo: 67, description: "Water main leak on the street behind the post office, water has been running for hours." },
+  { area: "Qendra", category: "urbanizem", urgency: "low", status: "in_progress", daysAgo: 81, description: "Pemët në parkun e qytetit kanë nevojë për krasitje, degët prekin telat elektrikë." },
 
   // Bahçallëk (5)
-  { area: "Bahçallëk", category: "rruge", urgency: "medium", status: "submitted", daysAgo: 5, description: "Asfalti i dëmtuar pas punimeve të ujësjellësit nuk është rregulluar ende." },
-  { area: "Bahçallëk", category: "mbeturina", urgency: "high", status: "in_progress", daysAgo: 17, description: "Deponi ilegale mbeturinash pranë shkollës — bad smell, kids walk past it every day." },
-  { area: "Bahçallëk", category: "drite", urgency: "low", status: "resolved", daysAgo: 33, description: "Ndriçimi publik ndizet me vonesë në rrugicat e lagjes." },
-  { area: "Bahçallëk", category: "uji", urgency: "medium", status: "resolved", daysAgo: 46, description: "Kapak pusete i thyer në trotuar, rrezik për fëmijët." },
-  { area: "Bahçallëk", category: "rruge", urgency: "low", status: "submitted", daysAgo: 74, description: "Mungojnë vijat e kalimit të këmbësorëve para marketit." },
+  { area: "Bahçallëk", category: "infrastruktura", urgency: "medium", status: "submitted", daysAgo: 5, description: "Asfalti i dëmtuar pas punimeve të ujësjellësit nuk është rregulluar ende." },
+  { area: "Bahçallëk", category: "inspektorati", urgency: "high", status: "in_progress", daysAgo: 17, description: "Deponi ilegale mbeturinash pranë shkollës — bad smell, kids walk past it every day." },
+  { area: "Bahçallëk", category: "infrastruktura", urgency: "low", status: "resolved", daysAgo: 33, description: "Ndriçimi publik ndizet me vonesë në rrugicat e lagjes." },
+  { area: "Bahçallëk", category: "sherbime_publike", urgency: "medium", status: "resolved", daysAgo: 46, description: "Kapak pusete i thyer në trotuar, rrezik për fëmijët." },
+  { area: "Bahçallëk", category: "infrastruktura", urgency: "low", status: "submitted", daysAgo: 74, description: "Mungojnë vijat e kalimit të këmbësorëve para marketit." },
 
   // Sopot (5)
-  { area: "Sopot", category: "drite", urgency: "high", status: "submitted", daysAgo: 2, description: "Rruga kryesore e Sopotit krejtësisht pa dritë, several streetlights are out." },
-  { area: "Sopot", category: "rruge", urgency: "medium", status: "in_progress", daysAgo: 14, description: "Gropa të shumta pas shiut, uji mbetet në rrugë për ditë të tëra." },
-  { area: "Sopot", category: "mbeturina", urgency: "low", status: "resolved", daysAgo: 29, description: "Kontejneri është dëmtuar dhe mbeturinat bien jashtë." },
-  { area: "Sopot", category: "gjelberim", urgency: "low", status: "resolved", daysAgo: 55, description: "Bari në hapësirën e gjelbër nuk është kositur prej javësh." },
-  { area: "Sopot", category: "uji", urgency: "medium", status: "in_progress", daysAgo: 86, description: "Kanalizimi del në rrugë sa herë bie shi i fortë." },
+  { area: "Sopot", category: "infrastruktura", urgency: "high", status: "submitted", daysAgo: 2, description: "Rruga kryesore e Sopotit krejtësisht pa dritë, several streetlights are out." },
+  { area: "Sopot", category: "infrastruktura", urgency: "medium", status: "in_progress", daysAgo: 14, description: "Gropa të shumta pas shiut, uji mbetet në rrugë për ditë të tëra." },
+  { area: "Sopot", category: "sherbime_publike", urgency: "low", status: "resolved", daysAgo: 29, description: "Kontejneri është dëmtuar dhe mbeturinat bien jashtë." },
+  { area: "Sopot", category: "urbanizem", urgency: "low", status: "resolved", daysAgo: 55, description: "Bari në hapësirën e gjelbër nuk është kositur prej javësh." },
+  { area: "Sopot", category: "sherbime_publike", urgency: "medium", status: "in_progress", daysAgo: 86, description: "Kanalizimi del në rrugë sa herë bie shi i fortë." },
 
   // Kodra e Diellit (3)
-  { area: "Kodra e Diellit", category: "rruge", urgency: "medium", status: "submitted", daysAgo: 9, description: "Rruga e pjerrët ka çarje të mëdha, në dimër do të jetë e rrezikshme." },
-  { area: "Kodra e Diellit", category: "drite", urgency: "low", status: "resolved", daysAgo: 41, description: "Streetlight flickering all night near the upper apartment blocks." },
-  { area: "Kodra e Diellit", category: "mbeturina", urgency: "medium", status: "resolved", daysAgo: 63, description: "Mbeturinat nuk janë mbledhur këtë javë në asnjë nga kontejnerët." },
+  { area: "Kodra e Diellit", category: "infrastruktura", urgency: "medium", status: "submitted", daysAgo: 9, description: "Rruga e pjerrët ka çarje të mëdha, në dimër do të jetë e rrezikshme." },
+  { area: "Kodra e Diellit", category: "infrastruktura", urgency: "low", status: "resolved", daysAgo: 41, description: "Streetlight flickering all night near the upper apartment blocks." },
+  { area: "Kodra e Diellit", category: "sherbime_publike", urgency: "medium", status: "resolved", daysAgo: 63, description: "Mbeturinat nuk janë mbledhur këtë javë në asnjë nga kontejnerët." },
 
   // Rruga e Prizrenit (3)
-  { area: "Rruga e Prizrenit", category: "rruge", urgency: "high", status: "in_progress", daysAgo: 7, description: "Gropë e madhe në korsinë drejt Prizrenit, dy vetura kanë dëmtuar gomat." },
-  { area: "Rruga e Prizrenit", category: "tjeter", urgency: "medium", status: "resolved", daysAgo: 31, description: "Shenja STOP është rrëzuar në kryqëzim." },
-  { area: "Rruga e Prizrenit", category: "drite", urgency: "medium", status: "submitted", daysAgo: 58, description: "Dark stretch of road near the petrol station, no working lights at all." },
+  { area: "Rruga e Prizrenit", category: "infrastruktura", urgency: "high", status: "in_progress", daysAgo: 7, description: "Gropë e madhe në korsinë drejt Prizrenit, dy vetura kanë dëmtuar gomat." },
+  { area: "Rruga e Prizrenit", category: "infrastruktura", urgency: "medium", status: "resolved", daysAgo: 31, description: "Shenja STOP është rrëzuar në kryqëzim." },
+  { area: "Rruga e Prizrenit", category: "infrastruktura", urgency: "medium", status: "submitted", daysAgo: 58, description: "Dark stretch of road near the petrol station, no working lights at all." },
 
   // Çarshia e Vjetër (3)
-  { area: "Çarshia e Vjetër", category: "rruge", urgency: "medium", status: "submitted", daysAgo: 4, description: "Kalldrëmi i lirshëm në Çarshi, turistët po pengohen." },
-  { area: "Çarshia e Vjetër", category: "mbeturina", urgency: "low", status: "resolved", daysAgo: 22, description: "Shportat e mbeturinave në Çarshi mbushen shpejt gjatë fundjavës." },
-  { area: "Çarshia e Vjetër", category: "tjeter", urgency: "low", status: "in_progress", daysAgo: 48, description: "Grafite në kepenget e dyqaneve të vjetra — needs cleaning before the season." },
+  { area: "Çarshia e Vjetër", category: "infrastruktura", urgency: "medium", status: "submitted", daysAgo: 4, description: "Kalldrëmi i lirshëm në Çarshi, turistët po pengohen." },
+  { area: "Çarshia e Vjetër", category: "sherbime_publike", urgency: "low", status: "resolved", daysAgo: 22, description: "Shportat e mbeturinave në Çarshi mbushen shpejt gjatë fundjavës." },
+  { area: "Çarshia e Vjetër", category: "urbanizem", urgency: "low", status: "in_progress", daysAgo: 48, description: "Grafite në kepenget e dyqaneve të vjetra — needs cleaning before the season." },
 
   // Krena (7) — first five are the hotspot cluster
-  { area: "Krena", category: "uji", urgency: "high", status: "resolved", daysAgo: 27, hotspot: true, description: "Kanalizimi derdhet në lumin Krena pranë urës së këmbësorëve, erë shumë e rëndë." },
-  { area: "Krena", category: "uji", urgency: "high", status: "submitted", daysAgo: 20, hotspot: true, description: "Sewage overflowing into the Krena again, same spot by the footbridge as last month." },
-  { area: "Krena", category: "uji", urgency: "medium", status: "submitted", daysAgo: 13, hotspot: true, description: "Pusi i kanalizimit pranë lumit Krena po rrjedh sërish." },
-  { area: "Krena", category: "uji", urgency: "high", status: "submitted", daysAgo: 6, hotspot: true, description: "Ujëra të zeza në bregun e Krenës, fëmijët luajnë aty afër." },
-  { area: "Krena", category: "uji", urgency: "high", status: "submitted", daysAgo: 2, hotspot: true, description: "Still leaking — raw sewage into the Krena by the footbridge, fourth time reported." },
-  { area: "Krena", category: "mbeturina", urgency: "medium", status: "in_progress", daysAgo: 44, description: "Mbeturina plastike të grumbulluara në shtratin e lumit Krena." },
-  { area: "Krena", category: "gjelberim", urgency: "low", status: "resolved", daysAgo: 70, description: "Shkurret përgjatë shëtitores së Krenës kanë zënë shtegun." },
+  { area: "Krena", category: "sherbime_publike", urgency: "high", status: "resolved", daysAgo: 27, hotspot: true, description: "Kanalizimi derdhet në lumin Krena pranë urës së këmbësorëve, erë shumë e rëndë." },
+  { area: "Krena", category: "sherbime_publike", urgency: "high", status: "submitted", daysAgo: 20, hotspot: true, description: "Sewage overflowing into the Krena again, same spot by the footbridge as last month." },
+  { area: "Krena", category: "sherbime_publike", urgency: "medium", status: "submitted", daysAgo: 13, hotspot: true, description: "Pusi i kanalizimit pranë lumit Krena po rrjedh sërish." },
+  { area: "Krena", category: "sherbime_publike", urgency: "high", status: "submitted", daysAgo: 6, hotspot: true, description: "Ujëra të zeza në bregun e Krenës, fëmijët luajnë aty afër." },
+  { area: "Krena", category: "sherbime_publike", urgency: "high", status: "submitted", daysAgo: 2, hotspot: true, description: "Still leaking — raw sewage into the Krena by the footbridge, fourth time reported." },
+  { area: "Krena", category: "sherbime_publike", urgency: "medium", status: "in_progress", daysAgo: 44, description: "Mbeturina plastike të grumbulluara në shtratin e lumit Krena." },
+  { area: "Krena", category: "urbanizem", urgency: "low", status: "resolved", daysAgo: 70, description: "Shkurret përgjatë shëtitores së Krenës kanë zënë shtegun." },
 
   // Ura e Shejtë (2)
-  { area: "Ura e Shejtë", category: "rruge", urgency: "medium", status: "submitted", daysAgo: 19, description: "Rruga për te Ura e Shejtë ka shumë gropa, duhet mirëmbajtje." },
-  { area: "Ura e Shejtë", category: "tjeter", urgency: "low", status: "resolved", daysAgo: 61, description: "Tabela informuese te ura është e dëmtuar dhe nuk lexohet." },
+  { area: "Ura e Shejtë", category: "infrastruktura", urgency: "medium", status: "submitted", daysAgo: 19, description: "Rruga për te Ura e Shejtë ka shumë gropa, duhet mirëmbajtje." },
+  { area: "Ura e Shejtë", category: "kulture", urgency: "low", status: "resolved", daysAgo: 61, description: "Tabela informuese te ura është e dëmtuar dhe nuk lexohet." },
 
   // Ujz (1) — deliberately almost silent
-  { area: "Ujz", category: "uji", urgency: "medium", status: "submitted", daysAgo: 36, description: "Uji i pijshëm në fshat ndërpritet çdo mbrëmje." },
+  { area: "Ujz", category: "sherbime_publike", urgency: "medium", status: "submitted", daysAgo: 36, description: "Uji i pijshëm në fshat ndërpritet çdo mbrëmje." },
 
   // Babaj i Bokës (2)
-  { area: "Babaj i Bokës", category: "rruge", urgency: "high", status: "in_progress", daysAgo: 15, description: "Rruga për në fshat pothuajse e pakalueshme pas shiut, mud everywhere." },
-  { area: "Babaj i Bokës", category: "drite", urgency: "low", status: "submitted", daysAgo: 50, description: "Asnjë ndriçim publik në qendër të fshatit." },
+  { area: "Babaj i Bokës", category: "infrastruktura", urgency: "high", status: "in_progress", daysAgo: 15, description: "Rruga për në fshat pothuajse e pakalueshme pas shiut, mud everywhere." },
+  { area: "Babaj i Bokës", category: "infrastruktura", urgency: "low", status: "submitted", daysAgo: 50, description: "Asnjë ndriçim publik në qendër të fshatit." },
 
   // Lipovec (2)
-  { area: "Lipovec", category: "mbeturina", urgency: "medium", status: "submitted", daysAgo: 26, description: "Mbeturinat mblidhen vetëm një herë në muaj në fshat." },
-  { area: "Lipovec", category: "uji", urgency: "medium", status: "resolved", daysAgo: 77, description: "Kanali i ujitjes është bllokuar dhe uji po vërshon arat." },
+  { area: "Lipovec", category: "sherbime_publike", urgency: "medium", status: "submitted", daysAgo: 26, description: "Mbeturinat mblidhen vetëm një herë në muaj në fshat." },
+  { area: "Lipovec", category: "bujqesi", urgency: "medium", status: "resolved", daysAgo: 77, description: "Kanali i ujitjes është bllokuar dhe uji po vërshon arat." },
 
   // Damjan: intentionally no reports.
 ];

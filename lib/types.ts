@@ -29,13 +29,22 @@ export type Report = {
 export const PUBLIC_REPORT_COLUMNS =
   "id, ticket_code, description, category, urgency, status, area, latitude, longitude, photo_url, duplicate_of, created_at, updated_at";
 
-export const CATEGORIES: { id: string; label: string }[] = [
-  { id: "rruge", label: "Rrugë & Trotuare" },
-  { id: "drite", label: "Ndriçim Publik" },
-  { id: "mbeturina", label: "Mbeturina" },
-  { id: "uji", label: "Uji & Kanalizimi" },
-  { id: "gjelberim", label: "Gjelbërim" },
-  { id: "tjeter", label: "Tjetër" },
+// Mirrors the municipality's departments. `scope` is fed to the AI classifier
+// (lib/ai.ts) so it knows what each department handles.
+export const CATEGORIES: { id: string; label: string; scope: string }[] = [
+  { id: "administrata", label: "Administrata", scope: "general municipal administration, documents, civil registry, staff conduct, anything that fits no other department" },
+  { id: "shendetesi", label: "Shëndetësi dhe Mirëqenie Sociale", scope: "health centers, public health hazards, stray animals, social welfare, vulnerable people" },
+  { id: "arsim", label: "Arsim", scope: "schools, kindergartens, school buildings and yards, education services" },
+  { id: "buxhet", label: "Buxhet dhe Financa", scope: "municipal taxes, fees, property tax, payments, budget spending" },
+  { id: "zhvillim_ekonomik", label: "Zhvillimi Ekonomik", scope: "businesses, markets, business permits, tourism, employment" },
+  { id: "urbanizem", label: "Urbanizëm", scope: "illegal construction, building permits, urban planning, public squares, parks and green spaces, graffiti and facades" },
+  { id: "bujqesi", label: "Bujqësi", scope: "agriculture, farmland, irrigation canals, livestock, rural issues" },
+  { id: "sherbime_publike", label: "Shërbime publike", scope: "garbage collection, waste containers, illegal dumps, street cleaning, drinking water supply, sewage, public transport" },
+  { id: "infrastruktura", label: "Infrastruktura", scope: "roads, potholes, sidewalks, bridges, street lighting, traffic lights and signs, drainage" },
+  { id: "kulture", label: "Kulturë", scope: "cultural heritage, monuments, the old bazaar, museums, cultural events, sports facilities" },
+  { id: "mbrojtje_shpetim", label: "Mbrojtje dhe Shpëtim", scope: "fire, floods, emergencies, dangerous structures, fallen trees, immediate safety hazards" },
+  { id: "kadastri", label: "Kadastri", scope: "land parcels, property boundaries, cadastral records, ownership disputes" },
+  { id: "inspektorati", label: "Inspektorati", scope: "violations of municipal rules, noise, occupied sidewalks, unhygienic businesses, sanitary and construction inspections" },
 ];
 
 export function categoryLabel(id: string | null): string {
