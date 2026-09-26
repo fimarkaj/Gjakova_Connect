@@ -43,6 +43,20 @@ export const STATUS_LABELS: Record<ReportStatus, { label: string; cls: string }>
   confirmed_resolved: { label: "Konfirmuar e zgjidhur", cls: "status-resolved" },
 };
 
+// Statuses staff can set from /admin. "reopened" / "confirmed_resolved" are
+// set by citizens via /api/reports/confirm, not by staff.
+export const STAFF_STATUSES: ReportStatus[] = ["submitted", "in_progress", "resolved"];
+
+export const URGENCY_LABELS: Record<string, { label: string; cls: string; rank: number }> = {
+  high: { label: "E lartë", cls: "urgency-high", rank: 3 },
+  medium: { label: "Mesatare", cls: "urgency-medium", rank: 2 },
+  low: { label: "E ulët", cls: "urgency-low", rank: 1 },
+};
+
+export function urgencyRank(urgency: string | null): number {
+  return (urgency && URGENCY_LABELS[urgency]?.rank) || 0;
+}
+
 // Pin colors on the map, per the mockup's status palette.
 export function statusPinColor(status: ReportStatus): string {
   if (status === "resolved" || status === "confirmed_resolved") return "var(--olive)";
