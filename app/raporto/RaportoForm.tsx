@@ -8,7 +8,7 @@ import Toast from "@/components/Toast";
 
 const PinMap = dynamic(() => import("./PinMap"), {
   ssr: false,
-  loading: () => <div className="pin-map-hint">Duke ngarkuar hartën…</div>,
+  loading: () => <div className="pin-map-hint">Loading map…</div>,
 });
 
 type LatLng = { lat: number; lng: number };
@@ -120,7 +120,7 @@ export default function RaportoForm() {
     } catch {
       // Clipboard blocked (insecure context, denied permission) — the code
       // stays on screen, so the citizen can still write it down.
-      showToast("Kopjimi nuk u lejua — ruaje kodin manualisht.");
+      showToast("Copy was not allowed — save the code manually.");
     }
   }
 
@@ -132,26 +132,26 @@ export default function RaportoForm() {
 
   function handleMapSelect(pos: LatLng) {
     setPin(pos);
-    setGeoStatus("Pika u shënua manualisht në hartë.");
+    setGeoStatus("Point marked manually on the map.");
   }
 
   function handleGeoClick() {
     if (!navigator.geolocation) {
-      setGeoStatus("GPS nuk mbështetet në këtë shfletues.");
+      setGeoStatus("GPS is not supported in this browser.");
       return;
     }
-    setGeoStatus("Duke gjetur vendndodhjen…");
+    setGeoStatus("Finding your location…");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const next = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setPin(next);
         setFlyTo({ ...next, nonce: Date.now() });
         setGeoStatus(
-          `Vendndodhja u gjet dhe u shënua në hartë (${next.lat.toFixed(3)}, ${next.lng.toFixed(3)}).`
+          `Location found and marked on the map (${next.lat.toFixed(3)}, ${next.lng.toFixed(3)}).`
         );
       },
       () => {
-        setGeoStatus("Nuk u lejua qasja te vendndodhja — shëno pikën manualisht në hartë.");
+        setGeoStatus("Location access was not allowed — mark the point manually on the map.");
       },
       { timeout: 6000 }
     );
@@ -193,13 +193,13 @@ export default function RaportoForm() {
       if (!res.ok) throw new Error(data?.error || "submit failed");
 
       addMyTicket(data.report.ticket_code);
-      showToast("Raportimi u dërgua — statusi tani është “Pranuar”.");
+      showToast("Report submitted — status is now “Submitted”.");
       setCopied(false);
       setConfirmation(data.report.ticket_code);
       resetForm();
     } catch (err) {
       console.error(err);
-      showToast("Diçka shkoi keq — provo përsëri.");
+      showToast("Something went wrong — please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -213,36 +213,36 @@ export default function RaportoForm() {
             <div className="confirm-icon" aria-hidden="true">
               <CheckCircleIcon />
             </div>
-            <h2 className="confirm-title">Raportimi u dërgua</h2>
-            <p className="confirm-label">Numri i biletës</p>
+            <h2 className="confirm-title">Report submitted</h2>
+            <p className="confirm-label">Ticket number</p>
             <button
               type="button"
               className="confirm-code"
               onClick={copyTicketCode}
-              aria-label={`Kopjo numrin e biletës ${confirmation}`}
+              aria-label={`Copy ticket number ${confirmation}`}
             >
               <span className="confirm-code-value">{confirmation}</span>
               <span className="confirm-code-copy">
                 {copied ? <CopiedIcon /> : <CopyIcon />}
-                {copied ? "U kopjua" : "Kopjo kodin"}
+                {copied ? "Copied" : "Copy code"}
               </span>
             </button>
             <p className="confirm-note">
-              Ruaje këtë kod — me të mund të gjurmosh statusin e raportimit tënd në çdo kohë.
+              Save this code — you can use it to track the status of your report at any time.
             </p>
             <div className="confirm-actions">
               <Link
                 className="btn-submit"
                 href={`/raportimet-e-mia?ticket=${encodeURIComponent(confirmation)}`}
               >
-                Gjurmo raportimin
+                Track report
               </Link>
               <button type="button" className="btn-ghost" onClick={startNewReport}>
-                Raporto një problem tjetër
+                Submit another report
               </button>
             </div>
             <Link className="confirm-home" href="/">
-              Kthehu në faqen kryesore
+              Back to home
             </Link>
           </div>
         </div>
@@ -256,10 +256,10 @@ export default function RaportoForm() {
     <section className="report" id="raporto">
       <div className="wrap">
         <div className="section-head">
-          <h2>Raporto një problem</h2>
+          <h2>Submit a report</h2>
           <p>
-            Sa më shumë detaje, aq më shpejt reagon ekipi përkatës. Foto dhe vendndodhja janë
-            të detyrueshme.
+            The more detail, the faster the relevant team can respond. Photo and location are
+            required.
           </p>
         </div>
 
@@ -275,7 +275,7 @@ export default function RaportoForm() {
             >
               {photoSource === "camera" && photoPreview ? (
                 <div className="preview-wrap">
-                  <img src={photoPreview} alt="Pamje e fotos" />
+                  <img src={photoPreview} alt="Photo preview" />
                   <button
                     type="button"
                     className="preview-remove"
@@ -290,8 +290,8 @@ export default function RaportoForm() {
               ) : (
                 <>
                   <CameraIcon />
-                  <strong>Bëj një foto</strong>
-                  <small>Hap kamerën e telefonit dhe fotografo problemin direkt</small>
+                  <strong>Take a photo</strong>
+                  <small>Open your phone&apos;s camera and photograph the problem directly</small>
                 </>
               )}
             </div>
@@ -327,7 +327,7 @@ export default function RaportoForm() {
             >
               {photoSource === "upload" && photoPreview ? (
                 <div className="preview-wrap">
-                  <img src={photoPreview} alt="Pamje e fotos" />
+                  <img src={photoPreview} alt="Photo preview" />
                   <button
                     type="button"
                     className="preview-remove"
@@ -342,7 +342,7 @@ export default function RaportoForm() {
               ) : (
                 <>
                   <UploadIcon />
-                  <span className="dz-text">Ose ngarko një foto ekzistuese</span>
+                  <span className="dz-text">Or upload an existing photo</span>
                 </>
               )}
             </div>
@@ -360,12 +360,12 @@ export default function RaportoForm() {
           <div className="report-details">
             <div className="field">
               <label>
-                Vendndodhja <span className="hint">kliko në hartë për të shënuar pikën</span>
+                Location <span className="hint">click on the map to mark the point</span>
               </label>
               <div className="pin-map">
                 <PinMap position={pin} onSelect={handleMapSelect} flyTo={flyTo} />
                 {!pin && (
-                  <div className="pin-map-hint">Kliko / prek hartën për të shënuar problemin</div>
+                  <div className="pin-map-hint">Click / tap the map to mark the problem</div>
                 )}
               </div>
               <div className="loc-row">
@@ -374,7 +374,7 @@ export default function RaportoForm() {
                     <circle cx="12" cy="12" r="3" />
                     <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
                   </svg>
-                  Gjej mua
+                  Find me
                 </button>
               </div>
               <div className="geo-status">{geoStatus}</div>
@@ -385,17 +385,17 @@ export default function RaportoForm() {
                 <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" />
               </svg>
               <span>
-                AI do ta kategorizojë automatikisht raportimin bazuar në përshkrimin tënd.
+                AI will automatically categorize the report based on your description.
               </span>
             </div>
 
             <div className="field">
               <label>
-                Përshkrimi <span className="hint">e detyrueshme</span>
+                Description <span className="hint">required</span>
               </label>
               <textarea
                 rows={3}
-                placeholder="Përshkruaj shkurt problemin — p.sh. gropë e madhe në mes të rrugës"
+                placeholder="Briefly describe the problem — e.g. a large pothole in the middle of the road"
                 required
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -404,23 +404,23 @@ export default function RaportoForm() {
 
             <div className="field">
               <label>
-                Email <span className="hint">opsionale — për t&apos;u njoftuar kur statusi ndryshon</span>
+                Email <span className="hint">optional — to be notified when the status changes</span>
               </label>
               <input
                 type="email"
-                placeholder="emri@shembull.com"
+                placeholder="name@example.com"
                 value={notifyEmail}
                 onChange={(e) => setNotifyEmail(e.target.value)}
               />
-              {!emailValid && <div className="geo-status">Formati i email-it nuk duket i saktë.</div>}
+              {!emailValid && <div className="geo-status">The email format doesn&apos;t look right.</div>}
             </div>
 
             <button className="btn-submit" disabled={!canSubmit} onClick={handleSubmit}>
-              {submitting ? "Duke dërguar…" : "Dërgo raportin"}
+              {submitting ? "Sending…" : "Send report"}
             </button>
             <div className="form-note">
-              Duke dërguar, raportimi shfaqet publikisht te &quot;Raportet e fundit&quot; pa
-              emrin tënd. Komuna e Gjakovës e përditëson statusin kur ekipi e shqyrton.
+              Once submitted, the report appears publicly under &quot;Recent reports&quot; without
+              your name. The Municipality of Gjakova updates the status as the team reviews it.
             </div>
           </div>
         </div>

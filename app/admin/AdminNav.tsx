@@ -8,25 +8,25 @@ export default function AdminNav() {
   return (
     <div className="filter-row admin-nav">
       <Link href="/admin" className={`filter-chip${pathname === "/admin" ? " selected" : ""}`}>
-        Raportimet
+        Reports
       </Link>
       <Link
         href="/admin/silence-map"
         className={`filter-chip${pathname === "/admin/silence-map" ? " selected" : ""}`}
       >
-        Harta e heshtjes
+        Silence map
       </Link>
       <Link
         href="/admin/chronic-issues"
         className={`filter-chip${pathname === "/admin/chronic-issues" ? " selected" : ""}`}
       >
-        Çështje kronike
+        Chronic issues
       </Link>
       <Link
         href="/admin/departments"
         className={`filter-chip${pathname === "/admin/departments" ? " selected" : ""}`}
       >
-        Departamentet
+        Departments
       </Link>
     </div>
   );

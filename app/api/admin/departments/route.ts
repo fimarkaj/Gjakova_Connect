@@ -10,7 +10,7 @@ export async function GET() {
 
   if (error) {
     console.error("departments GET: query failed", error);
-    return NextResponse.json({ error: "Departamentet nuk u ngarkuan." }, { status: 500 });
+    return NextResponse.json({ error: "Departments failed to load." }, { status: 500 });
   }
 
   return NextResponse.json({ departments: data });
@@ -23,10 +23,10 @@ export async function POST(req: NextRequest) {
   const contactEmail: string | null = body?.contact_email?.trim() || null;
 
   if (!name) {
-    return NextResponse.json({ error: "Emri i departamentit mungon." }, { status: 400 });
+    return NextResponse.json({ error: "Department name is missing." }, { status: 400 });
   }
   if (contactEmail && !EMAIL_RE.test(contactEmail)) {
-    return NextResponse.json({ error: "Email-i i kontaktit është i pavlefshëm." }, { status: 400 });
+    return NextResponse.json({ error: "The contact email is invalid." }, { status: 400 });
   }
 
   const { data, error } = await supabaseAdmin
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
   if (error || !data) {
     console.error("departments POST: insert failed", error);
-    return NextResponse.json({ error: "Departamenti nuk u krijua." }, { status: 500 });
+    return NextResponse.json({ error: "The department was not created." }, { status: 500 });
   }
 
   return NextResponse.json({ department: data });

@@ -17,10 +17,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .single();
 
   if (error || !report) {
-    return NextResponse.json({ error: "Raportimi nuk u gjet." }, { status: 404 });
+    return NextResponse.json({ error: "Report not found." }, { status: 404 });
   }
   if (!report.notify_email) {
-    return NextResponse.json({ error: "Ky raportim nuk ka email për njoftime." }, { status: 400 });
+    return NextResponse.json({ error: "This report has no notification email." }, { status: 400 });
   }
 
   const trackingUrl = `${new URL(req.url).origin}/raportimet-e-mia?ticket=${encodeURIComponent(report.ticket_code)}`;

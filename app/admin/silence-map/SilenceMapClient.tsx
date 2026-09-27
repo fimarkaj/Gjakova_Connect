@@ -8,9 +8,9 @@ import AdminNav from "../AdminNav";
 import { InlineError, TableSkeleton } from "../AdminStates";
 
 const FLAG_LABELS: Record<SilenceFlag, { label: string; cls: string }> = {
-  silent: { label: "Zonë e mundshme e heshtur", cls: "silence-badge silent" },
-  normal: { label: "Brenda pritjes", cls: "silence-badge normal" },
-  high: { label: "Vëllim i lartë", cls: "silence-badge high" },
+  silent: { label: "Possibly silent area", cls: "silence-badge silent" },
+  normal: { label: "Within expected range", cls: "silence-badge normal" },
+  high: { label: "High volume", cls: "silence-badge high" },
 };
 
 export default function SilenceMapClient() {
@@ -32,7 +32,7 @@ export default function SilenceMapClient() {
       .not("quality_flagged", "is", true)
       .neq("status", "rejected");
     if (error || !data) {
-      setLoadError("Të dhënat nuk u ngarkuan.");
+      setLoadError("The data failed to load.");
     } else {
       setAreas(data.map((r) => r.area as string | null));
     }
@@ -51,11 +51,11 @@ export default function SilenceMapClient() {
     <section>
       <div className="wrap">
         <div className="section-head">
-          <h2>Harta e heshtjes</h2>
+          <h2>Silence map</h2>
           <p>
-            Krahason numrin e raportimeve në çdo zonë me numrin që do të pritej sipas madhësisë së
-            popullsisë. Zonat që raportojnë shumë më pak se sa pritet mund të kenë probleme që nuk po
-            dëgjohen.
+            Compares the number of reports in each area with the number that would be expected
+            based on population size. Areas reporting far fewer than expected may have problems
+            that aren&apos;t being heard.
           </p>
         </div>
 
@@ -67,7 +67,7 @@ export default function SilenceMapClient() {
               <path d="M20 11a8 8 0 10-2.3 5.7" />
               <path d="M20 4v7h-7" />
             </svg>
-            {loading ? "Duke rifreskuar…" : "Rifresko"}
+            {loading ? "Refreshing…" : "Refresh"}
           </button>
         </div>
 
@@ -77,23 +77,23 @@ export default function SilenceMapClient() {
           <TableSkeleton rows={8} cols={5} />
         ) : !summary ? null : summary.totalCounted === 0 ? (
           <div className="empty-state">
-            <p>Ende nuk ka raportime me zonë për t&apos;i krahasuar.</p>
+            <p>No reports with an area to compare yet.</p>
           </div>
         ) : (
           <>
             <div className="admin-meta">
-              {summary.totalCounted} raportime të krahasuara
-              {summary.uncounted > 0 && ` · ${summary.uncounted} pa zonë të njohur nuk llogariten`}
+              {summary.totalCounted} reports compared
+              {summary.uncounted > 0 && ` · ${summary.uncounted} without a known area not counted`}
             </div>
             <div className="admin-table-wrap">
               <table className="admin-table silence-table">
                 <thead>
                   <tr>
-                    <th>Zona</th>
-                    <th className="num">Raportime</th>
-                    <th className="num">Pritet</th>
-                    <th>Raporti ndaj pritjes</th>
-                    <th>Vlerësimi</th>
+                    <th>Area</th>
+                    <th className="num">Reports</th>
+                    <th className="num">Expected</th>
+                    <th>Ratio to expected</th>
+                    <th>Assessment</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -102,10 +102,10 @@ export default function SilenceMapClient() {
                     return (
                       <tr key={row.area} className={row.flag === "silent" ? "row-silent" : undefined}>
                         <td className="admin-ticket">{row.area}</td>
-                        <td className="num" data-label="Raportime">
+                        <td className="num" data-label="Reports">
                           {row.actual}
                         </td>
-                        <td className="num" data-label="Pritet">
+                        <td className="num" data-label="Expected">
                           {row.expected.toFixed(1)}
                         </td>
                         <td>
@@ -130,11 +130,11 @@ export default function SilenceMapClient() {
               </table>
             </div>
             <p className="form-note">
-              &ldquo;Pritet&rdquo; = raportimet gjithsej × pesha e popullsisë së zonës. Një zonë shënohet si e
-              mundshme e heshtur kur ka më pak se {Math.round(SILENT_RATIO * 100)}% të pritjes, dhe me
-              vëllim të lartë kur ka mbi {Math.round(HIGH_VOLUME_RATIO * 100)}% dhe të paktën{" "}
-              {HIGH_VOLUME_MIN_REPORTS} raportime. Vija vertikale shënon 100%.
-              Me pak raportime gjithsej, dallimet e vogla nuk janë domethënëse.
+              &ldquo;Expected&rdquo; = total reports × the area&apos;s population weight. An area is marked as
+              possibly silent when it has less than {Math.round(SILENT_RATIO * 100)}% of the expected
+              amount, and high volume when it has over {Math.round(HIGH_VOLUME_RATIO * 100)}% and at
+              least {HIGH_VOLUME_MIN_REPORTS} reports. The vertical line marks 100%.
+              With few reports overall, small differences aren&apos;t meaningful.
             </p>
           </>
         )}

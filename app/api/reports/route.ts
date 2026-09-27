@@ -15,10 +15,10 @@ export async function POST(req: NextRequest) {
   const notifyEmail = notifyEmailRaw?.trim() || null;
 
   if (!description || latitude == null || longitude == null || !photoUrl) {
-    return NextResponse.json({ error: "Kërkesë e pavlefshme." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
   if (notifyEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(notifyEmail)) {
-    return NextResponse.json({ error: "Formati i email-it nuk është i vlefshëm." }, { status: 400 });
+    return NextResponse.json({ error: "The email format is not valid." }, { status: 400 });
   }
 
   // category is no longer collected from the submitter — it's assigned below
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 
   if (insertError || !inserted) {
     console.error("reports POST: insert failed", insertError);
-    return NextResponse.json({ error: "Diçka shkoi keq — provo përsëri." }, { status: 500 });
+    return NextResponse.json({ error: "Something went wrong — please try again." }, { status: 500 });
   }
 
   // Quality gate. Runs before classification and duplicate detection so an

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const emailBody: string | undefined = body?.body?.trim() || undefined;
 
   if (!departmentId) {
-    return NextResponse.json({ error: "Departamenti mungon." }, { status: 400 });
+    return NextResponse.json({ error: "Department is missing." }, { status: 400 });
   }
 
   const [{ data: report, error: reportError }, { data: department, error: deptError }] = await Promise.all([
@@ -28,16 +28,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   ]);
 
   if (reportError || !report) {
-    return NextResponse.json({ error: "Raportimi nuk u gjet." }, { status: 404 });
+    return NextResponse.json({ error: "Report not found." }, { status: 404 });
   }
   if (deptError || !department) {
-    return NextResponse.json({ error: "Departamenti nuk u gjet." }, { status: 404 });
+    return NextResponse.json({ error: "Department not found." }, { status: 404 });
   }
   if (!department.contact_email) {
-    return NextResponse.json({ error: "Ky departament nuk ka email kontakti." }, { status: 400 });
+    return NextResponse.json({ error: "This department has no contact email." }, { status: 400 });
   }
   if (!EMAIL_RE.test(department.contact_email)) {
-    return NextResponse.json({ error: "Email-i i departamentit është i pavlefshëm." }, { status: 400 });
+    return NextResponse.json({ error: "The department's email is invalid." }, { status: 400 });
   }
 
   let photoAttachment: { filename: string; content: Buffer; contentType: string } | null = null;
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       photoAttachment = { filename: `${report.ticket_code}.${ext}`, content: buffer, contentType };
     } catch (err) {
       console.error("send-department: photo fetch failed", err);
-      return NextResponse.json({ error: "Foto e raportimit nuk u shkarkua për bashkëngjitje." }, { status: 502 });
+      return NextResponse.json({ error: "The report's photo could not be downloaded for attachment." }, { status: 502 });
     }
   }
 
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     });
   } catch (err) {
     console.error("send-department: send failed", err);
-    return NextResponse.json({ error: "Dërgimi i email-it dështoi — provo përsëri." }, { status: 500 });
+    return NextResponse.json({ error: "Sending the email failed — please try again." }, { status: 500 });
   }
 
   if (result.sent) {

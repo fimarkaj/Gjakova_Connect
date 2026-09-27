@@ -24,7 +24,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     .filter((s) => s !== "" && s !== params.id && UUID_RE.test(s));
 
   if (!UUID_RE.test(params.id)) {
-    return NextResponse.json({ error: "Identifikues i pavlefshëm." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid identifier." }, { status: 400 });
   }
   if (memberIds.length === 0) {
     return NextResponse.json({ similarities: {} });
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   if (error) {
     console.error("duplicates GET: embedding query failed", error);
-    return NextResponse.json({ error: "Ngjashmëria nuk u lexua." }, { status: 500 });
+    return NextResponse.json({ error: "The similarity could not be read." }, { status: 500 });
   }
 
   const vectors = new Map<string, number[]>();

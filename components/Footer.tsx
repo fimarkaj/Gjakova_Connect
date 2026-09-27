@@ -12,37 +12,37 @@ export default function Footer() {
             Gjakova Connect
           </span>
           <div className="brand-sub" style={{ marginTop: 4, marginBottom: 14 }}>
-            Komuna e Gjakovës
+            Municipality of Gjakova
           </div>
           <p>
-            Platformë qytetare për raportimin e problemeve në infrastrukturën publike të qytetit — një prototip i
-            zhvilluar për hackathon.
+            A citizen platform for reporting problems in the city&apos;s public infrastructure — a prototype
+            developed for a hackathon.
           </p>
         </div>
         <div>
-          <h4>KOMUNA</h4>
+          <h4>MUNICIPALITY</h4>
           <ul>
             <li>
               <a href="https://gjakova.rks-gov.net/" target="_blank" rel="noopener noreferrer">
-                Rreth komunës
+                About the municipality
               </a>
             </li>
-            <li><Link href="/">Departamentet</Link></li>
-            <li><Link href="/">Kontakt</Link></li>
+            <li><Link href="/">Departments</Link></li>
+            <li><Link href="/">Contact</Link></li>
           </ul>
         </div>
         <div>
-          <h4>PLATFORMA</h4>
+          <h4>PLATFORM</h4>
           <ul>
-            <li><Link href="/raporto">Raporto problem</Link></li>
-            <li><Link href="/raportimet-e-mia">Shiko raportimet</Link></li>
-            <li><Link href="/#si-funksionon">Si funksionon</Link></li>
+            <li><Link href="/raporto">Submit a report</Link></li>
+            <li><Link href="/raportimet-e-mia">See reports</Link></li>
+            <li><Link href="/#si-funksionon">How it works</Link></li>
           </ul>
         </div>
       </div>
       <div className="wrap footer-bottom">
-        <span>Prototip hackathon — jo shërbim zyrtar aktiv i Komunës së Gjakovës.</span>
-        <span>Gjakovë, Kosovë</span>
+        <span>Hackathon prototype — not an active official service of the Municipality of Gjakova.</span>
+        <span>Gjakova, Kosovo</span>
       </div>
     </footer>
   );

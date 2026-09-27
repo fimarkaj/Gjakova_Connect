@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const ticketCode: string | undefined = body?.ticketCode;
 
   if (!id || (action !== "confirm" && action !== "reopen") || !ticketCode) {
-    return NextResponse.json({ error: "Kërkesë e pavlefshme." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
   const { data: report, error: fetchError } = await supabaseAdmin
@@ -19,13 +19,13 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (fetchError || !report) {
-    return NextResponse.json({ error: "Raportimi nuk u gjet." }, { status: 404 });
+    return NextResponse.json({ error: "Report not found." }, { status: 404 });
   }
   if (report.status !== "resolved") {
-    return NextResponse.json({ error: "Raportimi nuk është në statusin 'Zgjidhur'." }, { status: 400 });
+    return NextResponse.json({ error: "The report is not in the 'Resolved' status." }, { status: 400 });
   }
   if (ticketCode.trim().toLowerCase() !== report.ticket_code.toLowerCase()) {
-    return NextResponse.json({ error: "Nuk je i autorizuar për këtë veprim." }, { status: 403 });
+    return NextResponse.json({ error: "You are not authorized for this action." }, { status: 403 });
   }
 
   const nextStatus = action === "confirm" ? "confirmed_resolved" : "reopened";
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (updateError) {
-    return NextResponse.json({ error: "Diçka shkoi keq — provo përsëri." }, { status: 500 });
+    return NextResponse.json({ error: "Something went wrong — please try again." }, { status: 500 });
   }
 
   if (report.notify_email) {

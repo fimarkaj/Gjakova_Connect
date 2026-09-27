@@ -13,7 +13,7 @@ import CategoryIcon from "./CategoryIcon";
 
 const ReportsMap = dynamic(() => import("./ReportsMap"), {
   ssr: false,
-  loading: () => <div className="pin-map-hint">Duke ngarkuar hartën…</div>,
+  loading: () => <div className="pin-map-hint">Loading map…</div>,
 });
 
 type StatusFilter = "all" | "pending" | "done";
@@ -166,12 +166,12 @@ export default function RaportimetClient() {
       });
       const body = await res.json();
       if (!res.ok) {
-        setConfirmError({ id: report.id, message: body.error || "Diçka shkoi keq." });
+        setConfirmError({ id: report.id, message: body.error || "Something went wrong." });
         return;
       }
       setReports((prev) => prev.map((r) => (r.id === report.id ? { ...r, status: body.report.status } : r)));
     } catch {
-      setConfirmError({ id: report.id, message: "Diçka shkoi keq — provo përsëri." });
+      setConfirmError({ id: report.id, message: "Something went wrong — please try again." });
     } finally {
       setConfirmBusy(null);
     }
@@ -184,20 +184,20 @@ export default function RaportimetClient() {
     <section>
       <div className="wrap">
         <div className="section-head">
-          <h2>Raportimet e mia</h2>
+          <h2>My reports</h2>
           <p>
-            Çdo pikë në hartë është një raportim i qytetarëve. Kliko një pikë ose kërko për ta gjetur
-            raportimin tënd.
+            Every point on the map is a citizen report. Click a point or search to find your
+            report.
           </p>
         </div>
 
         <div className="field ticket-lookup">
-          <label htmlFor="ticket-lookup-input">Kërko me numër bileta</label>
+          <label htmlFor="ticket-lookup-input">Search by ticket number</label>
           <div className="loc-row">
             <input
               id="ticket-lookup-input"
               type="text"
-              placeholder="p.sh. GJK-1001"
+              placeholder="e.g. GJK-1001"
               value={ticketQuery}
               onChange={(e) => {
                 setTicketQuery(e.target.value);
@@ -208,11 +208,11 @@ export default function RaportimetClient() {
               }}
             />
             <button type="button" className="btn-geo" onClick={() => lookupTicket(ticketQuery)}>
-              Kërko
+              Search
             </button>
           </div>
           {ticketNotFound && (
-            <div className="geo-status">Nuk u gjet asnjë raportim me këtë kod bilete.</div>
+            <div className="geo-status">No report found with this ticket code.</div>
           )}
         </div>
 
@@ -222,19 +222,19 @@ export default function RaportimetClient() {
             className={`filter-chip${!onlyMine ? " selected" : ""}`}
             onClick={() => setOnlyMine(false)}
           >
-            Të gjitha raportimet
+            All reports
           </button>
           <button
             type="button"
             className={`filter-chip${onlyMine ? " selected" : ""}`}
             onClick={() => setOnlyMine(true)}
           >
-            Vetëm të miat
+            Mine only
           </button>
         </div>
         {onlyMine && myTickets.length === 0 && (
           <div className="mine-toggle-note">
-            Ende nuk ke raportuar asgjë nga ky shfletues.
+            You haven&apos;t submitted anything from this browser yet.
           </div>
         )}
 
@@ -242,7 +242,7 @@ export default function RaportimetClient() {
           <SearchIcon />
           <input
             type="text"
-            placeholder="Kërko me kod raportimi, përshkrim ose zonë…"
+            placeholder="Search by report code, description, or area…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -254,7 +254,7 @@ export default function RaportimetClient() {
             className={`filter-chip${categories.length === 0 ? " selected" : ""}`}
             onClick={() => setCategories([])}
           >
-            Të gjitha
+            All
           </button>
           {CATEGORIES.map((c) => (
             <button
@@ -274,21 +274,21 @@ export default function RaportimetClient() {
             className={`filter-chip${statusFilter === "all" ? " selected" : ""}`}
             onClick={() => setStatusFilter("all")}
           >
-            Të gjitha
+            All
           </button>
           <button
             type="button"
             className={`filter-chip${statusFilter === "pending" ? " selected" : ""}`}
             onClick={() => setStatusFilter("pending")}
           >
-            Në pritje
+            Pending
           </button>
           <button
             type="button"
             className={`filter-chip${statusFilter === "done" ? " selected" : ""}`}
             onClick={() => setStatusFilter("done")}
           >
-            E kryer
+            Done
           </button>
         </div>
 
@@ -297,24 +297,24 @@ export default function RaportimetClient() {
             <div className="map-frame" style={{ padding: 0, overflow: "hidden" }}>
               <ReportsMap reports={filtered} onPinClick={handlePinClick} />
             </div>
-            <div className="map-caption">Gjakovë — kliko një pikë për ta parë raportimin poshtë</div>
+            <div className="map-caption">Gjakova — click a point to see the report below</div>
           </div>
 
           <div>
             {noDataAtAll ? (
               <div className="empty-state">
                 <EmptyIcon />
-                <p>Ende nuk ka raportime këtu</p>
+                <p>No reports here yet</p>
                 <Link href="/raporto" className="btn-primary">
-                  Raporto problemin e parë
+                  Submit the first report
                 </Link>
               </div>
             ) : noResults ? (
               <div className="empty-state">
                 <EmptyIcon />
-                <p>Asnjë rezultat për këtë kërkim</p>
+                <p>No results for this search</p>
                 <Link href="/raporto" className="btn-primary">
-                  Raporto një problem tjetër
+                  Submit another report
                 </Link>
               </div>
             ) : (
@@ -343,7 +343,7 @@ export default function RaportimetClient() {
                               <CategoryIcon id={r.category} />
                               <span>{categoryLabel(r.category)}</span>
                             </div>
-                            <div className="report-loc">{r.area || "Pikë e shënuar në hartë"}</div>
+                            <div className="report-loc">{r.area || "Point marked on the map"}</div>
                           </div>
                           <div className={`status-pill ${st.cls}`}>{st.label}</div>
                         </div>
@@ -354,7 +354,7 @@ export default function RaportimetClient() {
 
                         {canConfirm && (
                           <div className="confirm-resolved">
-                            <span>A u zgjidh me të vërtetë?</span>
+                            <span>Was it really resolved?</span>
                             <div className="confirm-resolved-actions">
                               <button
                                 type="button"
@@ -362,7 +362,7 @@ export default function RaportimetClient() {
                                 disabled={confirmBusy === r.id}
                                 onClick={() => handleConfirm(r, "confirm")}
                               >
-                                Po
+                                Yes
                               </button>
                               <button
                                 type="button"
@@ -370,7 +370,7 @@ export default function RaportimetClient() {
                                 disabled={confirmBusy === r.id}
                                 onClick={() => handleConfirm(r, "reopen")}
                               >
-                                Jo
+                                No
                               </button>
                             </div>
                             {confirmError?.id === r.id && (

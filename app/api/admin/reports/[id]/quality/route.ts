@@ -10,7 +10,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const action: string | undefined = body?.action;
 
   if (action !== "accept" && action !== "reject") {
-    return NextResponse.json({ error: "Veprim i pavlefshëm." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid action." }, { status: 400 });
   }
 
   const { data: report, error: loadError } = await supabaseAdmin
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .single();
 
   if (loadError || !report) {
-    return NextResponse.json({ error: "Raportimi nuk u gjet." }, { status: 404 });
+    return NextResponse.json({ error: "Report not found." }, { status: 404 });
   }
 
   // flag_reason is kept on both paths — it's the record of why the gate
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     if (error || !rejected) {
       console.error("quality POST: reject failed", error);
-      return NextResponse.json({ error: "Diçka shkoi keq — provo përsëri." }, { status: 500 });
+      return NextResponse.json({ error: "Something went wrong — please try again." }, { status: 500 });
     }
 
     return NextResponse.json({ report: rejected, duplicate: null });
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   if (acceptError || !accepted) {
     console.error("quality POST: accept failed", acceptError);
-    return NextResponse.json({ error: "Diçka shkoi keq — provo përsëri." }, { status: 500 });
+    return NextResponse.json({ error: "Something went wrong — please try again." }, { status: 500 });
   }
 
   // Classification and duplicate detection were skipped at submission because

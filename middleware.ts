@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Shared staff password for the admin dashboard — no accounts, no citizen
 // data involved. Set ADMIN_PASSWORD in the environment to enable access.
 function unauthorized() {
-  return new NextResponse("Autentikim i kërkuar.", {
+  return new NextResponse("Authentication required.", {
     status: 401,
     headers: { "WWW-Authenticate": 'Basic realm="Admin", charset="UTF-8"' },
   });

@@ -26,7 +26,7 @@ export default function ChronicIssuesClient() {
       .not("quality_flagged", "is", true)
       .neq("status", "rejected");
     if (error || !data) {
-      setLoadError("Të dhënat nuk u ngarkuan.");
+      setLoadError("The data failed to load.");
     } else {
       setReports(data as ChronicReport[]);
     }
@@ -43,11 +43,11 @@ export default function ChronicIssuesClient() {
     <section>
       <div className="wrap">
         <div className="section-head">
-          <h2>Çështje kronike</h2>
+          <h2>Chronic issues</h2>
           <p>
-            Vendndodhje e kategori ku janë raportuar të paktën {CHRONIC_MIN_REPORTS} raste brenda ~100m nga
-            njëra-tjetra — shenjë se problemi vazhdon të përsëritet dhe mund të kërkojë investim kapital, jo
-            vetëm një riparim njëherësh.
+            Locations and categories with at least {CHRONIC_MIN_REPORTS} reports within ~100m of each
+            other — a sign the problem keeps recurring and may need capital investment, not just a
+            one-off repair.
           </p>
         </div>
 
@@ -59,7 +59,7 @@ export default function ChronicIssuesClient() {
               <path d="M20 11a8 8 0 10-2.3 5.7" />
               <path d="M20 4v7h-7" />
             </svg>
-            {loading ? "Duke rifreskuar…" : "Rifresko"}
+            {loading ? "Refreshing…" : "Refresh"}
           </button>
         </div>
 
@@ -69,35 +69,35 @@ export default function ChronicIssuesClient() {
           <TableSkeleton rows={4} cols={5} />
         ) : !groups ? null : groups.length === 0 ? (
           <div className="empty-state">
-            <p>Ende nuk ka asnjë çështje kronike — asnjë vendndodhje/kategori nuk ka arritur {CHRONIC_MIN_REPORTS} raste brenda ~100m.</p>
+            <p>No chronic issues yet — no location/category has reached {CHRONIC_MIN_REPORTS} reports within ~100m.</p>
           </div>
         ) : (
           <>
-            <div className="admin-meta">{groups.length} çështje kronike të gjetura</div>
+            <div className="admin-meta">{groups.length} chronic issues found</div>
             <div className="admin-table-wrap">
               <table className="admin-table chronic-table">
                 <thead>
                   <tr>
-                    <th>Zona</th>
-                    <th>Kategoria</th>
-                    <th className="num">Raportime</th>
-                    <th>Raportuar së pari</th>
-                    <th>Raportimet</th>
-                    <th>Vlerësimi</th>
+                    <th>Area</th>
+                    <th>Category</th>
+                    <th className="num">Reports</th>
+                    <th>First reported</th>
+                    <th>Reports</th>
+                    <th>Assessment</th>
                   </tr>
                 </thead>
                 <tbody>
                   {groups.map((g) => (
                     <tr key={g.key} className="row-chronic">
                       <td className="admin-ticket">{g.area}</td>
-                      <td data-label="Kategoria">{categoryLabel(g.category)}</td>
-                      <td className="num" data-label="Raportime">
+                      <td data-label="Category">{categoryLabel(g.category)}</td>
+                      <td className="num" data-label="Reports">
                         {g.reports.length}
                       </td>
-                      <td className="admin-date" data-label="Raportuar së pari" title={formatDate(g.firstReportedAt, true)}>
+                      <td className="admin-date" data-label="First reported" title={formatDate(g.firstReportedAt, true)}>
                         {formatDate(g.firstReportedAt)}
                       </td>
-                      <td data-label="Raportimet">
+                      <td data-label="Reports">
                         <div className="chronic-ticket-list">
                           {g.reports.map((r) => (
                             <Link key={r.id} href={`/admin?report=${r.id}`} className="chronic-ticket-link">
@@ -107,7 +107,7 @@ export default function ChronicIssuesClient() {
                         </div>
                       </td>
                       <td>
-                        <span className="chronic-badge">Çështje kronike — investim kapital</span>
+                        <span className="chronic-badge">Chronic issue — capital investment</span>
                       </td>
                     </tr>
                   ))}

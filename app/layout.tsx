@@ -22,7 +22,7 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "Gjakova Connect",
   description:
-    "Platformë qytetare për raportimin e problemeve në infrastrukturën publike të Gjakovës.",
+    "A citizen platform for reporting problems in Gjakova's public infrastructure.",
 };
 
 export const viewport: Viewport = {
@@ -36,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="sq" className={`${fraunces.variable} ${manrope.variable}`}>
+    <html lang="en" className={`${fraunces.variable} ${manrope.variable}`}>
       <body className="stonepattern">
         <Header />
         <main id="top">{children}</main>

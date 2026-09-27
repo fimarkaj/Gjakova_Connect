@@ -14,7 +14,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     .single();
 
   if (error || !report) {
-    return NextResponse.json({ error: "Raportimi nuk u gjet." }, { status: 404 });
+    return NextResponse.json({ error: "Report not found." }, { status: 404 });
   }
 
   // Send history for the "Send to Department" control — lets /admin show
@@ -40,7 +40,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const status: string | undefined = body?.status;
 
   if (!status || !STAFF_STATUSES.includes(status as ReportStatus)) {
-    return NextResponse.json({ error: "Status i pavlefshëm." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid status." }, { status: 400 });
   }
 
   const { data: existing } = await supabaseAdmin
@@ -58,7 +58,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   if (error || !updated) {
     console.error("admin PATCH: status update failed", error);
-    return NextResponse.json({ error: "Diçka shkoi keq — provo përsëri." }, { status: 500 });
+    return NextResponse.json({ error: "Something went wrong — please try again." }, { status: 500 });
   }
 
   if (existing && existing.status !== updated.status && updated.notify_email) {

@@ -14,7 +14,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const body: string | undefined = payload?.body?.trim() || undefined;
 
   if (!subject || !body) {
-    return NextResponse.json({ error: "Subjekti dhe teksti janë të detyrueshëm." }, { status: 400 });
+    return NextResponse.json({ error: "Subject and body are required." }, { status: 400 });
   }
 
   const { data: report, error } = await supabaseAdmin
@@ -24,13 +24,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .single();
 
   if (error || !report) {
-    return NextResponse.json({ error: "Raportimi nuk u gjet." }, { status: 404 });
+    return NextResponse.json({ error: "Report not found." }, { status: 404 });
   }
   if (!report.notify_email) {
-    return NextResponse.json({ error: "Ky raportim nuk ka adresë kontakti." }, { status: 400 });
+    return NextResponse.json({ error: "This report has no contact address." }, { status: 400 });
   }
   if (!EMAIL_RE.test(report.notify_email)) {
-    return NextResponse.json({ error: "Adresa e kontaktit është e pavlefshme." }, { status: 400 });
+    return NextResponse.json({ error: "The contact address is invalid." }, { status: 400 });
   }
 
   let result: { sent: boolean; demo: boolean };
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     result = await sendClarificationEmail({ to: report.notify_email, subject, body });
   } catch (err) {
     console.error("clarification: send failed", err);
-    return NextResponse.json({ error: "Dërgimi i email-it dështoi — provo përsëri." }, { status: 500 });
+    return NextResponse.json({ error: "Sending the email failed — please try again." }, { status: 500 });
   }
 
   // Stamped only on a real send, so the panel's "already asked" line never

@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import AdminClient from "./AdminClient";
 
 export const metadata: Metadata = {
-  title: "Paneli i stafit — Gjakova Connect",
+  title: "Staff panel — Gjakova Connect",
   robots: { index: false },
 };
 

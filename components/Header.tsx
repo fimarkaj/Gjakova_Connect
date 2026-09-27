@@ -18,30 +18,30 @@ export default function Header() {
             <span className="brand-name" style={{ display: "block" }}>
               Gjakova Connect
             </span>
-            <span className="brand-sub">Komuna e Gjakovës</span>
+            <span className="brand-sub">Municipality of Gjakova</span>
           </span>
         </Link>
 
         <nav className={`links${menuOpen ? " nav-links-mobile-open" : ""}`}>
           <Link href="/" className={pathname === "/" ? "active" : ""} onClick={() => setMenuOpen(false)}>
-            Ballina
+            Home
           </Link>
           <Link href="/raporto" className={pathname === "/raporto" ? "active" : ""} onClick={() => setMenuOpen(false)}>
-            Raporto
+            Report
           </Link>
           <Link
             href="/raportimet-e-mia"
             className={pathname === "/raportimet-e-mia" ? "active" : ""}
             onClick={() => setMenuOpen(false)}
           >
-            Raportimet e Mia
+            My Reports
           </Link>
         </nav>
 
         <button
           type="button"
           className="menu-toggle"
-          aria-label="Hap menynë"
+          aria-label="Open menu"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((open) => !open)}
         >

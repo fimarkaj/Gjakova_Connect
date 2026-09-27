@@ -19,7 +19,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const adminNote: string | null = typeof body?.adminNote === "string" ? body.adminNote : null;
 
   if (!departmentId) {
-    return NextResponse.json({ error: "Departamenti mungon." }, { status: 400 });
+    return NextResponse.json({ error: "Department is missing." }, { status: 400 });
   }
 
   const [{ data: report, error: reportError }, { data: department, error: deptError }] = await Promise.all([
@@ -28,10 +28,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   ]);
 
   if (reportError || !report) {
-    return NextResponse.json({ error: "Raportimi nuk u gjet." }, { status: 404 });
+    return NextResponse.json({ error: "Report not found." }, { status: 404 });
   }
   if (deptError || !department) {
-    return NextResponse.json({ error: "Departamenti nuk u gjet." }, { status: 404 });
+    return NextResponse.json({ error: "Department not found." }, { status: 404 });
   }
 
   const mapsUrl =
@@ -79,8 +79,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   } catch (err) {
     const reason =
       err instanceof AIBudgetExceededError
-        ? "Buxheti i AI-së është shpenzuar."
-        : "Gjenerimi me AI dështoi.";
+        ? "The AI budget has been used up."
+        : "AI generation failed.";
     console.error("send-department/generate: work order generation failed", err);
 
     const template = buildDepartmentEmail(templateParams);
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       subject: template.subject,
       body: template.body,
       fallback: true,
-      fallbackReason: `${reason} Ky tekst është shablloni standard, jo i gjeneruar nga AI.`,
+      fallbackReason: `${reason} This text is the standard template, not AI-generated.`,
       departmentName: department.name,
       hasContactEmail: Boolean(department.contact_email),
     });

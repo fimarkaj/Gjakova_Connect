@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import RaportimetClient from "./RaportimetClient";
 
 export const metadata: Metadata = {
-  title: "Raportimet e Mia — Gjakova Connect",
+  title: "My Reports — Gjakova Connect",
 };
 
 export default function RaportimetEMiaPage() {

@@ -22,7 +22,7 @@ import { InlineError, TableSkeleton } from "./AdminStates";
 
 const AdminMap = dynamic(() => import("./AdminMap"), {
   ssr: false,
-  loading: () => <div className="pin-map-hint">Duke ngarkuar hartën…</div>,
+  loading: () => <div className="pin-map-hint">Loading map…</div>,
 });
 
 type SortKey = "newest" | "urgency";
@@ -31,10 +31,10 @@ type View = "table" | "map";
 const NO_AREA = "__none__";
 
 const MAP_LEGEND: { status: ReportStatus; color: string; label: string }[] = [
-  { status: "submitted", color: "var(--slate)", label: "Pranuar" },
-  { status: "in_progress", color: "var(--amber)", label: "Në proces" },
-  { status: "resolved", color: "var(--olive)", label: "Zgjidhur" },
-  { status: "reopened", color: "var(--clay)", label: "Rihapur" },
+  { status: "submitted", color: "var(--slate)", label: "Submitted" },
+  { status: "in_progress", color: "var(--amber)", label: "In progress" },
+  { status: "resolved", color: "var(--olive)", label: "Resolved" },
+  { status: "reopened", color: "var(--clay)", label: "Reopened" },
 ];
 
 function UrgencyPill({ urgency }: { urgency: string | null }) {
@@ -162,7 +162,7 @@ export default function AdminClient() {
       .select(PUBLIC_REPORT_COLUMNS)
       .order("created_at", { ascending: false });
     if (error || !data) {
-      setLoadError("Raportimet nuk u ngarkuan.");
+      setLoadError("Reports failed to load.");
     } else {
       setReports(data as Report[]);
       setLoadedAt(new Date());
@@ -363,12 +363,12 @@ export default function AdminClient() {
       });
       const body = await res.json();
       if (!res.ok) {
-        setReviewError(body.error || "Diçka shkoi keq.");
+        setReviewError(body.error || "Something went wrong.");
         return;
       }
       setReports((prev) => prev.map((r) => (r.id === report.id ? (body.report as Report) : r)));
     } catch {
-      setReviewError("Diçka shkoi keq — provo përsëri.");
+      setReviewError("Something went wrong — please try again.");
     } finally {
       setReviewBusy(false);
     }
@@ -389,7 +389,7 @@ export default function AdminClient() {
       });
       const body = await res.json();
       if (!res.ok) {
-        setGenError(body.error || "Përgatitja e email-it dështoi.");
+        setGenError(body.error || "Preparing the email failed.");
         return;
       }
       setWorkOrder({
@@ -401,7 +401,7 @@ export default function AdminClient() {
         fallbackReason: (body.fallbackReason as string | undefined) ?? null,
       });
     } catch {
-      setGenError("Diçka shkoi keq — provo përsëri.");
+      setGenError("Something went wrong — please try again.");
     } finally {
       setGenBusy(false);
     }
@@ -426,7 +426,7 @@ export default function AdminClient() {
       });
       const body = await res.json();
       if (!res.ok) {
-        setClarError(body.error || "Përgatitja e email-it dështoi.");
+        setClarError(body.error || "Preparing the email failed.");
         return;
       }
       setClarification({
@@ -435,7 +435,7 @@ export default function AdminClient() {
         body: body.body as string,
       });
     } catch {
-      setClarError("Diçka shkoi keq — provo përsëri.");
+      setClarError("Something went wrong — please try again.");
     } finally {
       setClarBusy(false);
     }
@@ -457,11 +457,11 @@ export default function AdminClient() {
       });
       const body = await res.json();
       if (!res.ok) {
-        setClarError(body.error || "Diçka shkoi keq.");
+        setClarError(body.error || "Something went wrong.");
         return;
       }
       if (body.demo) {
-        setClarError("Nuk u dërgua me të vërtetë — GMAIL_USER/GMAIL_APP_PASSWORD mungon (mënyra demo).");
+        setClarError("Not actually sent — GMAIL_USER/GMAIL_APP_PASSWORD is missing (demo mode).");
         return;
       }
       setClarification(null);
@@ -477,7 +477,7 @@ export default function AdminClient() {
           : prev
       );
     } catch {
-      setClarError("Diçka shkoi keq — provo përsëri.");
+      setClarError("Something went wrong — please try again.");
     } finally {
       setClarSendBusy(false);
     }
@@ -494,11 +494,11 @@ export default function AdminClient() {
       });
       const body = await res.json();
       if (!res.ok) {
-        setSendError(body.error || "Diçka shkoi keq.");
+        setSendError(body.error || "Something went wrong.");
         return;
       }
       if (body.demo) {
-        setSendError("Nuk u dërgua me të vërtetë — GMAIL_USER/GMAIL_APP_PASSWORD mungon (mënyra demo).");
+        setSendError("Not actually sent — GMAIL_USER/GMAIL_APP_PASSWORD is missing (demo mode).");
         return;
       }
       setWorkOrder(null);
@@ -508,7 +508,7 @@ export default function AdminClient() {
         .then((b) => setDetailSends({ reportId: report.id, sends: (b?.sends ?? []) as DepartmentSend[] }))
         .catch(() => {});
     } catch {
-      setSendError("Diçka shkoi keq — provo përsëri.");
+      setSendError("Something went wrong — please try again.");
     } finally {
       setSendBusy(false);
     }
@@ -526,12 +526,12 @@ export default function AdminClient() {
       });
       const body = await res.json();
       if (!res.ok) {
-        setNotifyError(body.error || "Diçka shkoi keq.");
+        setNotifyError(body.error || "Something went wrong.");
         return;
       }
-      setNotifySent(body.demo ? "U regjistrua në konsolë (mënyra demo)." : "Email-i u dërgua.");
+      setNotifySent(body.demo ? "Logged to the console (demo mode)." : "Email sent.");
     } catch {
-      setNotifyError("Diçka shkoi keq — provo përsëri.");
+      setNotifyError("Something went wrong — please try again.");
     } finally {
       setNotifyBusy(false);
     }
@@ -549,12 +549,12 @@ export default function AdminClient() {
       });
       const body = await res.json();
       if (!res.ok) {
-        setStatusError(body.error || "Diçka shkoi keq.");
+        setStatusError(body.error || "Something went wrong.");
         return;
       }
       setReports((prev) => prev.map((r) => (r.id === report.id ? (body.report as Report) : r)));
     } catch {
-      setStatusError("Diçka shkoi keq — provo përsëri.");
+      setStatusError("Something went wrong — please try again.");
     } finally {
       setStatusBusy(false);
     }
@@ -566,8 +566,8 @@ export default function AdminClient() {
     <section>
       <div className="wrap">
         <div className="section-head">
-          <h2>Paneli i stafit</h2>
-          <p>Të gjitha raportimet e qytetarëve. Kliko një rresht për detajet dhe për të ndryshuar statusin.</p>
+          <h2>Staff panel</h2>
+          <p>All citizen reports. Click a row for details and to change the status.</p>
         </div>
 
         <AdminNav />
@@ -578,14 +578,14 @@ export default function AdminClient() {
             className={`filter-chip${view === "table" ? " selected" : ""}`}
             onClick={() => setView("table")}
           >
-            Tabela
+            Table
           </button>
           <button
             type="button"
             className={`filter-chip${view === "map" ? " selected" : ""}`}
             onClick={() => setView("map")}
           >
-            Harta
+            Map
           </button>
           <button
             type="button"
@@ -593,16 +593,16 @@ export default function AdminClient() {
             aria-pressed={reviewOnly}
             onClick={() => setReviewOnly((v) => !v)}
           >
-            Për rishikim
+            Needs review
             <span className="chip-count">{flaggedCount}</span>
           </button>
         </div>
 
         <div className="admin-toolbar">
           <label className="admin-control">
-            <span>Statusi</span>
+            <span>Status</span>
             <select className="admin-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="">Të gjitha</option>
+              <option value="">All</option>
               {(Object.keys(STATUS_LABELS) as ReportStatus[]).map((s) => (
                 <option key={s} value={s}>
                   {STATUS_LABELS[s].label}
@@ -611,13 +611,13 @@ export default function AdminClient() {
             </select>
           </label>
           <label className="admin-control">
-            <span>Kategoria</span>
+            <span>Category</span>
             <select
               className="admin-select"
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
             >
-              <option value="">Të gjitha</option>
+              <option value="">All</option>
               {CATEGORIES.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.label}
@@ -626,22 +626,22 @@ export default function AdminClient() {
             </select>
           </label>
           <label className="admin-control">
-            <span>Zona</span>
+            <span>Area</span>
             <select className="admin-select" value={areaFilter} onChange={(e) => setAreaFilter(e.target.value)}>
-              <option value="">Të gjitha</option>
+              <option value="">All</option>
               {areaOptions.map((a) => (
                 <option key={a} value={a}>
                   {a}
                 </option>
               ))}
-              <option value={NO_AREA}>Pa zonë</option>
+              <option value={NO_AREA}>No area</option>
             </select>
           </label>
           <label className="admin-control">
-            <span>Rendit sipas</span>
+            <span>Sort by</span>
             <select className="admin-select" value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
-              <option value="newest">Më të rejat</option>
-              <option value="urgency">Urgjencës</option>
+              <option value="newest">Newest</option>
+              <option value="urgency">Urgency</option>
             </select>
           </label>
           <button type="button" className="btn-geo admin-refresh" onClick={load} disabled={loading}>
@@ -649,14 +649,14 @@ export default function AdminClient() {
               <path d="M20 11a8 8 0 10-2.3 5.7" />
               <path d="M20 4v7h-7" />
             </svg>
-            {loading ? "Duke rifreskuar…" : "Rifresko"}
+            {loading ? "Refreshing…" : "Refresh"}
           </button>
         </div>
 
         {!initialLoad && !loadError && (
           <div className="admin-meta">
-            {filtered.length} nga {reports.length} raportime
-            {loadedAt && ` · përditësuar ${formatClock(loadedAt)}`}
+            {filtered.length} of {reports.length} reports
+            {loadedAt && ` · updated ${formatClock(loadedAt)}`}
           </div>
         )}
 
@@ -666,14 +666,14 @@ export default function AdminClient() {
           <TableSkeleton cols={6} />
         ) : loadError && reports.length === 0 ? null : reports.length === 0 ? (
           <div className="empty-state">
-            <p>Ende nuk ka asnjë raportim.</p>
+            <p>No reports yet.</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="empty-state">
-            <p>Asnjë raportim nuk përputhet me këta filtra.</p>
+            <p>No reports match these filters.</p>
             {hasFilters && (
               <button type="button" className="btn-ghost" onClick={clearFilters}>
-                Pastro filtrat
+                Clear filters
               </button>
             )}
           </div>
@@ -696,12 +696,12 @@ export default function AdminClient() {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Kodi</th>
-                  <th>Zona</th>
-                  <th>Kategoria</th>
-                  <th>Urgjenca</th>
-                  <th>Statusi</th>
-                  <th>Krijuar</th>
+                  <th>Code</th>
+                  <th>Area</th>
+                  <th>Category</th>
+                  <th>Urgency</th>
+                  <th>Status</th>
+                  <th>Created</th>
                 </tr>
               </thead>
               <tbody>
@@ -731,8 +731,8 @@ export default function AdminClient() {
                               aria-expanded={isOpen}
                               aria-label={
                                 isOpen
-                                  ? `Fshih ${duplicates.length} dublikate të ${r.ticket_code}`
-                                  : `Shfaq ${duplicates.length} dublikate të ${r.ticket_code}`
+                                  ? `Hide ${duplicates.length} duplicates of ${r.ticket_code}`
+                                  : `Show ${duplicates.length} duplicates of ${r.ticket_code}`
                               }
                               onClick={(e) => {
                                 // The row itself opens the detail panel.
@@ -747,12 +747,12 @@ export default function AdminClient() {
                             </button>
                           )}
                           {r.ticket_code}
-                          {r.quality_flagged && <span className="flag-tag">për rishikim</span>}
+                          {r.quality_flagged && <span className="flag-tag">needs review</span>}
                           {duplicates.length > 0 && (
-                            <span className="dup-tag">+{duplicates.length} dublikate</span>
+                            <span className="dup-tag">+{duplicates.length} duplicates</span>
                           )}
                         </td>
-                        <td>{r.area || <span className="admin-muted">Pa zonë</span>}</td>
+                        <td>{r.area || <span className="admin-muted">No area</span>}</td>
                         <td>{categoryLabel(r.category)}</td>
                         <td>
                           <UrgencyPill urgency={r.urgency} />
@@ -786,7 +786,7 @@ export default function AdminClient() {
                                 {d.ticket_code}
                               </td>
                               <td colSpan={3} className="admin-muted dup-meta">
-                                Ngjashmëria:{" "}
+                                Similarity:{" "}
                                 {score == null ? (
                                   <span className="admin-muted">{scores ? "—" : "…"}</span>
                                 ) : (
@@ -970,13 +970,13 @@ function ReportDetail({
             <div className="report-cat">{categoryLabel(report.category)}</div>
             {reasoning && (
               <p className="detail-reasoning">
-                <span className="ai-tag">gjeneruar nga AI</span>
+                <span className="ai-tag">AI-generated</span>
                 {reasoning}
               </p>
             )}
             <h3 id="detail-title">{report.ticket_code}</h3>
           </div>
-          <button ref={closeRef} type="button" className="preview-remove detail-close" onClick={onClose} aria-label="Mbyll">
+          <button ref={closeRef} type="button" className="preview-remove detail-close" onClick={onClose} aria-label="Close">
             &times;
           </button>
         </div>
@@ -991,12 +991,12 @@ function ReportDetail({
         {report.quality_flagged ? (
           <div className="detail-review">
             <div className="review-head">
-              <span className="flag-tag">për rishikim</span>
-              <span>Porta e cilësisë e shënoi këtë raportim</span>
+              <span className="flag-tag">needs review</span>
+              <span>The quality gate flagged this report</span>
             </div>
             {flagReason && <p className="review-reason">{flagReason}</p>}
             <div className="review-original">
-              <label>Raportimi origjinal:</label>
+              <label>Original report:</label>
               <p>{report.description}</p>
             </div>
             <div className="loc-row review-actions">
@@ -1006,7 +1006,7 @@ function ReportDetail({
                 disabled={reviewBusy}
                 onClick={() => onReview("accept")}
               >
-                {reviewBusy ? "Duke ruajtur…" : "Prano"}
+                {reviewBusy ? "Saving…" : "Accept"}
               </button>
               <button
                 type="button"
@@ -1014,7 +1014,7 @@ function ReportDetail({
                 disabled={reviewBusy}
                 onClick={() => onReview("reject")}
               >
-                Refuzo
+                Reject
               </button>
             </div>
             {reviewError && <div className="confirm-resolved-error detail-error">{reviewError}</div>}
@@ -1040,7 +1040,7 @@ function ReportDetail({
           <>
             <p className="detail-desc">{report.normalized_description}</p>
             <div className="detail-original">
-              <label>Raportimi origjinal:</label>
+              <label>Original report:</label>
               <p>{report.description}</p>
             </div>
           </>
@@ -1049,21 +1049,21 @@ function ReportDetail({
         )}
 
         <dl className="detail-grid">
-          <dt>Zona</dt>
-          <dd>{report.area || "Pa zonë"}</dd>
-          <dt>Urgjenca</dt>
+          <dt>Area</dt>
+          <dd>{report.area || "No area"}</dd>
+          <dt>Urgency</dt>
           <dd>
             <UrgencyPill urgency={report.urgency} />
           </dd>
-          <dt>Krijuar</dt>
+          <dt>Created</dt>
           <dd>
             {formatDate(report.created_at, true)} · {timeAgo(report.created_at)}
           </dd>
-          <dt>Përditësuar</dt>
+          <dt>Updated</dt>
           <dd>{formatDate(report.updated_at, true)}</dd>
           {report.latitude != null && report.longitude != null && (
             <>
-              <dt>Koordinatat</dt>
+              <dt>Coordinates</dt>
               <dd>
                 {report.latitude.toFixed(5)}, {report.longitude.toFixed(5)}
               </dd>
@@ -1071,7 +1071,7 @@ function ReportDetail({
           )}
           {report.duplicate_of && (
             <>
-              <dt>Dublikatë e</dt>
+              <dt>Duplicate of</dt>
               <dd>
                 {duplicateOf ? (
                   <button type="button" className="link-button" onClick={() => onOpen(duplicateOf.id)}>
@@ -1087,7 +1087,7 @@ function ReportDetail({
 
         <div className="field detail-status">
           <label>
-            Statusi <span className="hint">aktualisht: {STATUS_LABELS[report.status].label}</span>
+            Status <span className="hint">currently: {STATUS_LABELS[report.status].label}</span>
           </label>
           <div className="chip-row">
             {STAFF_STATUSES.map((s) => (
@@ -1103,20 +1103,20 @@ function ReportDetail({
               </button>
             ))}
           </div>
-          {busy && <div className="geo-status">Duke ruajtur…</div>}
+          {busy && <div className="geo-status">Saving…</div>}
           {error && <div className="confirm-resolved-error detail-error">{error}</div>}
         </div>
 
         {notifyEmail && (
           <div className="field detail-notify">
             <label>
-              Njoftim me email <span className="hint">{notifyEmail}</span>
+              Email notification <span className="hint">{notifyEmail}</span>
             </label>
             {notifyOpen ? (
               <>
                 <textarea
                   rows={2}
-                  placeholder="Mesazh i shkurtër opsional (nëse bosh, dërgohet njoftimi standard i statusit)"
+                  placeholder="Optional short message (if left blank, the standard status notice is sent)"
                   value={notifyMessage}
                   onChange={(e) => setNotifyMessage(e.target.value)}
                 />
@@ -1127,13 +1127,13 @@ function ReportDetail({
                     disabled={notifyBusy}
                     onClick={() => onSendNotify(notifyMessage.trim() || undefined)}
                   >
-                    {notifyBusy ? "Duke dërguar…" : "Dërgo"}
+                    {notifyBusy ? "Sending…" : "Send"}
                   </button>
                 </div>
               </>
             ) : (
               <button type="button" className="btn-geo btn-geo-full" onClick={() => setNotifyOpen(true)}>
-                Dërgo njoftim me email
+                Send email notification
               </button>
             )}
             {notifySent && <div className="geo-status">{notifySent}</div>}
@@ -1222,7 +1222,7 @@ function EmailPreview({
   return (
     <div className="wo-preview">
       <div className="wo-head">
-        <span className="ai-tag">gjeneruar nga AI</span>
+        <span className="ai-tag">AI-generated</span>
         <span>{heading}</span>
       </div>
 
@@ -1231,7 +1231,7 @@ function EmailPreview({
       )}
 
       <label className="wo-sublabel" htmlFor={`${idPrefix}-subject`}>
-        Subjekti
+        Subject
       </label>
       <input
         id={`${idPrefix}-subject`}
@@ -1241,7 +1241,7 @@ function EmailPreview({
       />
 
       <label className="wo-sublabel" htmlFor={`${idPrefix}-body`}>
-        Teksti
+        Body
       </label>
       <textarea
         id={`${idPrefix}-body`}
@@ -1258,7 +1258,7 @@ function EmailPreview({
           disabled={sendBusy || regenBusy || !canSend}
           onClick={() => onSend(subject, body)}
         >
-          {sendBusy ? "Duke dërguar…" : "Dërgo"}
+          {sendBusy ? "Sending…" : "Send"}
         </button>
         <button
           type="button"
@@ -1266,10 +1266,10 @@ function EmailPreview({
           disabled={sendBusy || regenBusy}
           onClick={onRegenerate}
         >
-          {regenBusy ? "Duke rigjeneruar…" : "Rigjenero"}
+          {regenBusy ? "Regenerating…" : "Regenerate"}
         </button>
         <button type="button" className="btn-ghost" disabled={sendBusy} onClick={onCancel}>
-          Anulo
+          Cancel
         </button>
       </div>
     </div>
@@ -1305,7 +1305,7 @@ function ClarificationRequest({
   if (!notifyEmail) {
     return (
       <p className="clar-none">
-        Qytetari nuk la adresë kontakti, prandaj sqarimi nuk mund të kërkohet.
+        The citizen did not leave a contact address, so a clarification cannot be requested.
       </p>
     );
   }
@@ -1314,18 +1314,18 @@ function ClarificationRequest({
     <div className="clar-request">
       {/* Above the button, so a clerk sees a request already went out rather
           than sending a second one. */}
-      {sentAt && <div className="geo-status">Sqarimi u kërkua më {formatDate(sentAt, true)}</div>}
+      {sentAt && <div className="geo-status">Clarification requested on {formatDate(sentAt, true)}</div>}
 
       {!draft ? (
         <div className="loc-row">
           <button type="button" className="btn-ghost" disabled={busy} onClick={onPrepare}>
-            {busy ? "Duke përgatitur…" : "Kërko sqarim"}
+            {busy ? "Preparing…" : "Request clarification"}
           </button>
         </div>
       ) : (
         <EmailPreview
           idPrefix="clar"
-          heading={`Shqyrto përpara dërgimit te ${notifyEmail}`}
+          heading={`Review before sending to ${notifyEmail}`}
           draft={draft}
           sendBusy={sendBusy}
           regenBusy={busy}
@@ -1374,7 +1374,7 @@ function SendToDepartment({
 
   return (
     <div className="field detail-send-dept">
-      <label>Dërgo te departamenti</label>
+      <label>Send to department</label>
       <select
         className="admin-select"
         value={deptId}
@@ -1394,7 +1394,7 @@ function SendToDepartment({
       {selectedDept && !selectedDept.contact_email && (
         <div className="auto-cat-note">
           <span>
-            Ky departament nuk ka email kontakti. <Link href="/admin/departments">Shtoje këtu</Link>.
+            This department has no contact email. <Link href="/admin/departments">Add it here</Link>.
           </span>
         </div>
       )}
@@ -1402,13 +1402,13 @@ function SendToDepartment({
       {!workOrder ? (
         <>
           <label className="wo-sublabel" htmlFor="wo-note">
-            Shënim për departamentin <span className="hint">opsional</span>
+            Note for the department <span className="hint">optional</span>
           </label>
           <textarea
             id="wo-note"
             rows={2}
             value={adminNote}
-            placeholder="Udhëzim shtesë për ekipin…"
+            placeholder="Additional instructions for the team…"
             onChange={(e) => setAdminNote(e.target.value)}
           />
           <div className="loc-row">
@@ -1418,14 +1418,14 @@ function SendToDepartment({
               disabled={genBusy || !selectedDept?.contact_email}
               onClick={() => onPrepare(adminNote)}
             >
-              {genBusy ? "Duke përgatitur…" : "Përgatit email-in"}
+              {genBusy ? "Preparing…" : "Prepare email"}
             </button>
           </div>
         </>
       ) : (
         <EmailPreview
           idPrefix="wo"
-          heading={`Shqyrto përpara dërgimit te ${selectedDept?.name ?? ""}`}
+          heading={`Review before sending to ${selectedDept?.name ?? ""}`}
           draft={workOrder}
           sendDisabled={!selectedDept?.contact_email}
           sendBusy={busy}
@@ -1438,7 +1438,7 @@ function SendToDepartment({
 
       {lastSend && !workOrder && (
         <div className="geo-status">
-          Dërguar te {selectedDept?.name} më {formatDate(lastSend.sent_at, true)}
+          Sent to {selectedDept?.name} on {formatDate(lastSend.sent_at, true)}
         </div>
       )}
 

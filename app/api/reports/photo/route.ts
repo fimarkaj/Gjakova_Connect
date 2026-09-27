@@ -11,10 +11,10 @@ export async function POST(req: NextRequest) {
   const file = formData?.get("photo");
 
   if (!file || !(file instanceof File) || !file.type.startsWith("image/")) {
-    return NextResponse.json({ error: "Foto e pavlefshme." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid photo." }, { status: 400 });
   }
   if (file.size > MAX_BYTES) {
-    return NextResponse.json({ error: "Foto është shumë e madhe." }, { status: 400 });
+    return NextResponse.json({ error: "The photo is too large." }, { status: 400 });
   }
 
   const inputBuffer = Buffer.from(await file.arrayBuffer());
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     outputBuffer = await sharp(inputBuffer).rotate().jpeg({ quality: 85 }).toBuffer();
   } catch (err) {
     console.error("reports/photo POST: sharp processing failed", err);
-    return NextResponse.json({ error: "Foto nuk mund të përpunohej." }, { status: 400 });
+    return NextResponse.json({ error: "The photo could not be processed." }, { status: 400 });
   }
 
   const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
   if (uploadError) {
     console.error("reports/photo POST: upload failed", uploadError);
-    return NextResponse.json({ error: "Diçka shkoi keq — provo përsëri." }, { status: 500 });
+    return NextResponse.json({ error: "Something went wrong — please try again." }, { status: 500 });
   }
 
   const {

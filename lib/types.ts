@@ -35,19 +35,19 @@ export const PUBLIC_REPORT_COLUMNS =
 // Mirrors the municipality's departments. `scope` is fed to the AI classifier
 // (lib/ai.ts) so it knows what each department handles.
 export const CATEGORIES: { id: string; label: string; scope: string }[] = [
-  { id: "administrata", label: "Administrata", scope: "general municipal administration, documents, civil registry, staff conduct, anything that fits no other department" },
-  { id: "shendetesi", label: "Shëndetësi dhe Mirëqenie Sociale", scope: "health centers, public health hazards, stray animals, social welfare, vulnerable people" },
-  { id: "arsim", label: "Arsim", scope: "schools, kindergartens, school buildings and yards, education services" },
-  { id: "buxhet", label: "Buxhet dhe Financa", scope: "municipal taxes, fees, property tax, payments, budget spending" },
-  { id: "zhvillim_ekonomik", label: "Zhvillimi Ekonomik", scope: "businesses, markets, business permits, tourism, employment" },
-  { id: "urbanizem", label: "Urbanizëm", scope: "illegal construction, building permits, urban planning, public squares, parks and green spaces, graffiti and facades" },
-  { id: "bujqesi", label: "Bujqësi", scope: "agriculture, farmland, irrigation canals, livestock, rural issues" },
-  { id: "sherbime_publike", label: "Shërbime publike", scope: "garbage collection, waste containers, illegal dumps, street cleaning, drinking water supply, sewage, public transport" },
-  { id: "infrastruktura", label: "Infrastruktura", scope: "roads, potholes, sidewalks, bridges, street lighting, traffic lights and signs, drainage" },
-  { id: "kulture", label: "Kulturë", scope: "cultural heritage, monuments, the old bazaar, museums, cultural events, sports facilities" },
-  { id: "mbrojtje_shpetim", label: "Mbrojtje dhe Shpëtim", scope: "fire, floods, emergencies, dangerous structures, fallen trees, immediate safety hazards" },
-  { id: "kadastri", label: "Kadastri", scope: "land parcels, property boundaries, cadastral records, ownership disputes" },
-  { id: "inspektorati", label: "Inspektorati", scope: "violations of municipal rules, noise, occupied sidewalks, unhygienic businesses, sanitary and construction inspections" },
+  { id: "administrata", label: "Administration", scope: "general municipal administration, documents, civil registry, staff conduct, anything that fits no other department" },
+  { id: "shendetesi", label: "Health and Social Welfare", scope: "health centers, public health hazards, stray animals, social welfare, vulnerable people" },
+  { id: "arsim", label: "Education", scope: "schools, kindergartens, school buildings and yards, education services" },
+  { id: "buxhet", label: "Budget and Finance", scope: "municipal taxes, fees, property tax, payments, budget spending" },
+  { id: "zhvillim_ekonomik", label: "Economic Development", scope: "businesses, markets, business permits, tourism, employment" },
+  { id: "urbanizem", label: "Urban Planning", scope: "illegal construction, building permits, urban planning, public squares, parks and green spaces, graffiti and facades" },
+  { id: "bujqesi", label: "Agriculture", scope: "agriculture, farmland, irrigation canals, livestock, rural issues" },
+  { id: "sherbime_publike", label: "Public Services", scope: "garbage collection, waste containers, illegal dumps, street cleaning, drinking water supply, sewage, public transport" },
+  { id: "infrastruktura", label: "Infrastructure", scope: "roads, potholes, sidewalks, bridges, street lighting, traffic lights and signs, drainage" },
+  { id: "kulture", label: "Culture", scope: "cultural heritage, monuments, the old bazaar, museums, cultural events, sports facilities" },
+  { id: "mbrojtje_shpetim", label: "Protection and Rescue", scope: "fire, floods, emergencies, dangerous structures, fallen trees, immediate safety hazards" },
+  { id: "kadastri", label: "Cadastre", scope: "land parcels, property boundaries, cadastral records, ownership disputes" },
+  { id: "inspektorati", label: "Inspectorate", scope: "violations of municipal rules, noise, occupied sidewalks, unhygienic businesses, sanitary and construction inspections" },
 ];
 
 export type Department = {
@@ -66,16 +66,16 @@ export type DepartmentSend = {
 };
 
 export function categoryLabel(id: string | null): string {
-  return CATEGORIES.find((c) => c.id === id)?.label ?? "Tjetër";
+  return CATEGORIES.find((c) => c.id === id)?.label ?? "Other";
 }
 
 export const STATUS_LABELS: Record<ReportStatus, { label: string; cls: string }> = {
-  submitted: { label: "Pranuar", cls: "status-received" },
-  in_progress: { label: "Në proces", cls: "status-progress" },
-  resolved: { label: "Zgjidhur", cls: "status-resolved" },
-  reopened: { label: "Rihapur", cls: "status-progress" },
-  confirmed_resolved: { label: "Konfirmuar e zgjidhur", cls: "status-resolved" },
-  rejected: { label: "Refuzuar", cls: "status-rejected" },
+  submitted: { label: "Submitted", cls: "status-received" },
+  in_progress: { label: "In progress", cls: "status-progress" },
+  resolved: { label: "Resolved", cls: "status-resolved" },
+  reopened: { label: "Reopened", cls: "status-progress" },
+  confirmed_resolved: { label: "Confirmed resolved", cls: "status-resolved" },
+  rejected: { label: "Rejected", cls: "status-rejected" },
 };
 
 // Statuses staff can set from /admin. "reopened" / "confirmed_resolved" are
@@ -85,9 +85,9 @@ export const STATUS_LABELS: Record<ReportStatus, { label: string; cls: string }>
 export const STAFF_STATUSES: ReportStatus[] = ["submitted", "in_progress", "resolved"];
 
 export const URGENCY_LABELS: Record<string, { label: string; cls: string; rank: number }> = {
-  high: { label: "E lartë", cls: "urgency-high", rank: 3 },
-  medium: { label: "Mesatare", cls: "urgency-medium", rank: 2 },
-  low: { label: "E ulët", cls: "urgency-low", rank: 1 },
+  high: { label: "High", cls: "urgency-high", rank: 3 },
+  medium: { label: "Medium", cls: "urgency-medium", rank: 2 },
+  low: { label: "Low", cls: "urgency-low", rank: 1 },
 };
 
 export function urgencyRank(urgency: string | null): number {

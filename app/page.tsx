@@ -7,39 +7,39 @@ export default function HomePage() {
       <section className="hero">
         <div className="wrap hero-grid">
           <div>
-            <div className="eyebrow-free">Për qytetarët e Gjakovës</div>
+            <div className="eyebrow-free">For the citizens of Gjakova</div>
             <h1>
-              Sheh një problem
+              See a problem
               <br />
-              në qytet? Na e trego.
+              in the city? Tell us.
             </h1>
             <p className="lede">
-              Bëj një foto, shëno vendin, dhe raportimi shkon direkt te komuna. Ne e ndjekim
-              statusin bashkë me ty — nga &quot;pranuar&quot; te &quot;zgjidhur&quot;.
+              Take a photo, mark the spot, and the report goes straight to the municipality. We
+              track the status together with you — from &quot;submitted&quot; to &quot;resolved&quot;.
             </p>
             <div className="hero-actions">
               <Link href="/raporto" className="btn-primary">
-                Raporto një problem
+                Submit a report
               </Link>
               <Link href="/raportimet-e-mia" className="btn-ghost">
-                Shiko raportimet e fundit
+                See recent reports
               </Link>
             </div>
             <div className="stats-strip">
               <div className="stat">
                 <b>128</b>
-                <span>raportime gjithsej</span>
+                <span>total reports</span>
               </div>
               <div className="stat">
                 <b>61%</b>
-                <span>të zgjidhura</span>
+                <span>resolved</span>
               </div>
               <div className="stat">
                 <b>19</b>
-                <span>në proces tani</span>
+                <span>in progress now</span>
               </div>
             </div>
-            <div className="stats-note">*të dhëna shembull për prototipin</div>
+            <div className="stats-note">*sample data for the prototype</div>
           </div>
 
           <div className="hero-art" aria-hidden="true">
@@ -54,8 +54,8 @@ export default function HomePage() {
       <section id="si-funksionon">
         <div className="wrap">
           <div className="section-head">
-            <h2>Si funksionon</h2>
-            <p>Tri hapa, nga qytetari te ekipi i komunës.</p>
+            <h2>How it works</h2>
+            <p>Three steps, from the citizen to the municipality's team.</p>
           </div>
           <div className="steps">
             <div className="step">
@@ -72,10 +72,10 @@ export default function HomePage() {
                 <path d="M8 7l1.5-3h5L16 7" />
                 <circle cx="12" cy="13.5" r="3.2" />
               </svg>
-              <h3>Fotografo problemin</h3>
+              <h3>Photograph the problem</h3>
               <p>
-                Bëj një foto direkt nga telefoni — gropë në rrugë, dritë e prishur, mbeturina,
-                apo çështje tjetër.
+                Take a photo directly from your phone — a pothole, a broken light, garbage,
+                or another issue.
               </p>
             </div>
             <div className="step">
@@ -91,10 +91,10 @@ export default function HomePage() {
                 <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
-              <h3>Shëno vendndodhjen</h3>
+              <h3>Mark the location</h3>
               <p>
-                Përdor GPS-në ose shkruaj rrugën. Kjo ndihmon ekipin ta gjejë problemin pa
-                vonesë.
+                Use GPS or write the street. This helps the team find the problem without
+                delay.
               </p>
             </div>
             <div className="step">
@@ -110,10 +110,10 @@ export default function HomePage() {
                 <path d="M9 12l2 2 4-4" />
                 <circle cx="12" cy="12" r="9" />
               </svg>
-              <h3>Ndiq statusin</h3>
+              <h3>Track the status</h3>
               <p>
-                Raportimi kalon nga &quot;Pranuar&quot; në &quot;Në proces&quot; e më pas
-                &quot;Zgjidhur&quot;, publikisht, për të gjithë.
+                The report moves from &quot;Submitted&quot; to &quot;In progress&quot; and then
+                &quot;Resolved&quot;, publicly, for everyone.
               </p>
             </div>
           </div>

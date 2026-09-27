@@ -19,11 +19,11 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     .single();
 
   if (error || !report) {
-    return NextResponse.json({ error: "Raportimi nuk u gjet." }, { status: 404 });
+    return NextResponse.json({ error: "Report not found." }, { status: 404 });
   }
   if (!report.notify_email) {
     return NextResponse.json(
-      { error: "Ky raportim nuk ka adresë kontakti." },
+      { error: "This report has no contact address." },
       { status: 400 }
     );
   }
@@ -45,8 +45,8 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     console.error("clarification/generate: generation failed", err);
     const message =
       err instanceof AIBudgetExceededError
-        ? "Buxheti i AI-së është shpenzuar — email-i nuk u përgatit."
-        : "Gjenerimi i email-it dështoi — provo përsëri.";
+        ? "The AI budget has been used up — the email was not prepared."
+        : "Generating the email failed — please try again.";
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }

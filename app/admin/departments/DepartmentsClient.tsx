@@ -35,10 +35,10 @@ export default function DepartmentsClient() {
     try {
       const res = await fetch("/api/admin/departments");
       const body = await res.json();
-      if (!res.ok) throw new Error(body.error || "Diçka shkoi keq.");
+      if (!res.ok) throw new Error(body.error || "Something went wrong.");
       setDepartments(body.departments as Department[]);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : "Departamentet nuk u ngarkuan.");
+      setLoadError(err instanceof Error ? err.message : "Departments failed to load.");
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export default function DepartmentsClient() {
       });
       const body = await res.json();
       if (!res.ok) {
-        setSaveError(body.error || "Diçka shkoi keq.");
+        setSaveError(body.error || "Something went wrong.");
         return;
       }
       setDepartments((prev) =>
@@ -73,7 +73,7 @@ export default function DepartmentsClient() {
       );
       setEditingId(null);
     } catch {
-      setSaveError("Diçka shkoi keq — provo përsëri.");
+      setSaveError("Something went wrong — please try again.");
     } finally {
       setSaveBusy(false);
     }
@@ -81,7 +81,7 @@ export default function DepartmentsClient() {
 
   async function addDepartment() {
     if (!addName.trim()) {
-      setAddError("Emri i departamentit mungon.");
+      setAddError("Department name is missing.");
       return;
     }
     setAddBusy(true);
@@ -98,7 +98,7 @@ export default function DepartmentsClient() {
       });
       const body = await res.json();
       if (!res.ok) {
-        setAddError(body.error || "Diçka shkoi keq.");
+        setAddError(body.error || "Something went wrong.");
         return;
       }
       setDepartments((prev) => (prev ? [...prev, body.department as Department] : [body.department as Department]));
@@ -107,7 +107,7 @@ export default function DepartmentsClient() {
       setAddEmail("");
       setAddOpen(false);
     } catch {
-      setAddError("Diçka shkoi keq — provo përsëri.");
+      setAddError("Something went wrong — please try again.");
     } finally {
       setAddBusy(false);
     }
@@ -117,10 +117,10 @@ export default function DepartmentsClient() {
     <section>
       <div className="wrap">
         <div className="section-head">
-          <h2>Departamentet</h2>
+          <h2>Departments</h2>
           <p>
-            Emailat e kontaktit për çdo departament — përdoren kur stafi zgjedh &quot;Dërgo te departamenti&quot;
-            te një raportim.
+            Contact emails for each department — used when staff choose &quot;Send to department&quot;
+            on a report.
           </p>
         </div>
 
@@ -132,7 +132,7 @@ export default function DepartmentsClient() {
               <path d="M20 11a8 8 0 10-2.3 5.7" />
               <path d="M20 4v7h-7" />
             </svg>
-            {loading ? "Duke rifreskuar…" : "Rifresko"}
+            {loading ? "Refreshing…" : "Refresh"}
           </button>
         </div>
 
@@ -142,25 +142,25 @@ export default function DepartmentsClient() {
           <TableSkeleton rows={6} cols={4} />
         ) : !departments ? null : departments.length === 0 ? (
           <div className="empty-state">
-            <p>Ende nuk ka asnjë departament.</p>
+            <p>No departments yet.</p>
           </div>
         ) : (
           <div className="admin-table-wrap">
             <table className="admin-table dept-table">
               <thead>
                 <tr>
-                  <th>Emri</th>
-                  <th>Kategoria</th>
-                  <th>Email kontakti</th>
-                  <th>Përditësuar</th>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Contact email</th>
+                  <th>Updated</th>
                 </tr>
               </thead>
               <tbody>
                 {departments.map((d) => (
                   <tr key={d.id}>
-                    <td data-label="Emri">{d.name}</td>
-                    <td data-label="Kategoria">{categoryName(d.category)}</td>
-                    <td data-label="Email kontakti">
+                    <td data-label="Name">{d.name}</td>
+                    <td data-label="Category">{categoryName(d.category)}</td>
+                    <td data-label="Contact email">
                       {editingId === d.id ? (
                         <div className="loc-row">
                           <input
@@ -171,22 +171,22 @@ export default function DepartmentsClient() {
                             autoFocus
                           />
                           <button type="button" className="btn-geo" disabled={saveBusy} onClick={() => saveEmail(d)}>
-                            {saveBusy ? "Duke ruajtur…" : "Ruaj"}
+                            {saveBusy ? "Saving…" : "Save"}
                           </button>
                           <button type="button" className="btn-ghost" onClick={() => setEditingId(null)}>
-                            Anulo
+                            Cancel
                           </button>
                         </div>
                       ) : (
                         <button type="button" className="link-button" onClick={() => startEdit(d)}>
-                          {d.contact_email || <span className="admin-muted">Vendos email</span>}
+                          {d.contact_email || <span className="admin-muted">Set email</span>}
                         </button>
                       )}
                       {editingId === d.id && saveError && (
                         <div className="confirm-resolved-error detail-error">{saveError}</div>
                       )}
                     </td>
-                    <td className="admin-date" data-label="Përditësuar" title={formatDate(d.updated_at, true)}>
+                    <td className="admin-date" data-label="Updated" title={formatDate(d.updated_at, true)}>
                       {formatDate(d.updated_at)}
                     </td>
                   </tr>
@@ -201,17 +201,17 @@ export default function DepartmentsClient() {
             <div className="dept-add-form">
               <div className="admin-toolbar">
                 <label className="admin-control">
-                  <span>Emri</span>
+                  <span>Name</span>
                   <input type="text" value={addName} onChange={(e) => setAddName(e.target.value)} />
                 </label>
                 <label className="admin-control">
-                  <span>Kategoria</span>
+                  <span>Category</span>
                   <select
                     className="admin-select"
                     value={addCategory}
                     onChange={(e) => setAddCategory(e.target.value)}
                   >
-                    <option value="">Pa kategori</option>
+                    <option value="">No category</option>
                     {CATEGORIES.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.label}
@@ -220,7 +220,7 @@ export default function DepartmentsClient() {
                   </select>
                 </label>
                 <label className="admin-control">
-                  <span>Email kontakti</span>
+                  <span>Contact email</span>
                   <input
                     type="email"
                     value={addEmail}
@@ -231,17 +231,17 @@ export default function DepartmentsClient() {
               </div>
               <div className="loc-row">
                 <button type="button" className="btn-geo" disabled={addBusy} onClick={addDepartment}>
-                  {addBusy ? "Duke shtuar…" : "Shto departamentin"}
+                  {addBusy ? "Adding…" : "Add department"}
                 </button>
                 <button type="button" className="btn-ghost" onClick={() => setAddOpen(false)}>
-                  Anulo
+                  Cancel
                 </button>
               </div>
               {addError && <div className="confirm-resolved-error detail-error">{addError}</div>}
             </div>
           ) : (
             <button type="button" className="btn-ghost" onClick={() => setAddOpen(true)}>
-              + Shto departament të ri
+              + Add new department
             </button>
           )}
         </div>
