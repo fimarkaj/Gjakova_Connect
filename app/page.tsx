@@ -55,7 +55,7 @@ export default function HomePage() {
         <div className="wrap">
           <div className="section-head">
             <h2>How it works</h2>
-            <p>Three steps, from the citizen to the municipality's team.</p>
+            <p>Three steps, from the citizen to the municipality&apos;s team.</p>
           </div>
           <div className="steps">
             <div className="step">
