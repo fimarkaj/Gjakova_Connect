@@ -776,6 +776,123 @@ input[type=text]:focus, input[type=email]:focus, input[type=password]:focus, tex
   line-height: 1.6;
 }
 
+/* ---------- submission confirmation ---------- */
+/* Replaces the form after a successful submit. Sized to the same 560px column
+   as .report-grid so the card lines up with the form it replaces. */
+.confirm-card {
+  max-width: 560px;
+  margin: 0 auto;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-m);
+  padding: 32px 24px;
+  text-align: center;
+}
+.confirm-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: var(--olive-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.confirm-icon svg {
+  width: 26px;
+  height: 26px;
+  stroke: var(--olive);
+}
+.confirm-title {
+  font-size: clamp(22px, 5vw, 28px);
+}
+.confirm-label {
+  margin: 22px 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+/* The code itself is the copy button, so the thing the citizen wants to keep
+   is also the thing they tap. */
+.confirm-code {
+  width: 100%;
+  border: 1.5px dashed var(--clay);
+  background: var(--stone);
+  border-radius: var(--radius-m);
+  padding: 16px 18px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+}
+.confirm-code:hover {
+  background: var(--stone-2);
+}
+.confirm-code-value {
+  font-size: clamp(30px, 9vw, 40px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  word-break: break-all;
+}
+.confirm-code-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--clay);
+}
+.confirm-code-copy svg {
+  width: 15px;
+  height: 15px;
+  stroke: var(--clay);
+  flex: none;
+}
+.confirm-note {
+  margin: 14px 0 0;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+.confirm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+/* Both actions reuse the existing button skins; only the box model changes so
+   they stack full-width and stay tappable at phone widths. */
+.confirm-actions .btn-submit,
+.confirm-actions .btn-ghost {
+  width: 100%;
+  margin-top: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+}
+.confirm-home {
+  display: inline-block;
+  margin-top: 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  min-height: 44px;
+  line-height: 44px;
+}
+.confirm-home:hover {
+  color: var(--ink);
+}
+
 .toast {
   position: fixed;
   left: 50%;
@@ -1002,6 +1119,10 @@ input[type=text]:focus, input[type=email]:focus, input[type=password]:focus, tex
 .status-resolved {
   background: var(--olive-bg);
   color: var(--olive);
+}
+.status-rejected {
+  background: var(--clay);
+  color: #fff;
 }
 
 .empty-state {
@@ -1412,6 +1533,59 @@ footer a:hover {
   white-space: nowrap;
   color: var(--ink-soft);
 }
+/* Expand control on a clustered parent row. Sized to sit inline with the
+   ticket code without changing the row's height, so rows with no duplicates
+   stay exactly as tall as before. */
+.dup-toggle {
+  width: 18px;
+  height: 18px;
+  margin-right: 7px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--stone);
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.dup-toggle:hover {
+  border-color: var(--clay);
+  color: var(--clay);
+}
+.dup-toggle:focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 1px;
+}
+/* Nested duplicate rows, indented under their canonical report. */
+.admin-row-dup {
+  background: var(--stone);
+}
+.admin-row-dup:hover {
+  background: var(--stone-2);
+}
+.admin-ticket-dup {
+  font-weight: 600;
+  color: var(--ink-soft);
+  padding-left: 26px;
+}
+.dup-branch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 8px;
+  border-left: 1.5px solid var(--line);
+  border-bottom: 1.5px solid var(--line);
+  border-bottom-left-radius: 3px;
+  vertical-align: middle;
+  transform: translateY(-2px);
+}
+.dup-meta {
+  font-size: 13px;
+}
 .dup-tag {
   margin-left: 8px;
   font-size: 11px;
@@ -1420,6 +1594,32 @@ footer a:hover {
   border: 1px solid var(--line);
   border-radius: 100px;
   padding: 2px 8px;
+}
+.flag-tag {
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--clay);
+  border: 1px solid var(--clay);
+  border-radius: 100px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.row-flagged td:first-child {
+  box-shadow: inset 3px 0 0 var(--clay);
+}
+.chip-count {
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  border-radius: 100px;
+  padding: 1px 7px;
+  background: var(--clay);
+  color: #fff;
+}
+.filter-chip.selected .chip-count {
+  background: var(--paper);
+  color: var(--clay);
 }
 
 .urgency-pill {
@@ -1546,6 +1746,133 @@ footer a:hover {
   font-size: 15px;
   line-height: 1.6;
   margin: 0 0 18px;
+}
+.detail-original,
+.review-original {
+  margin: 0 0 18px;
+}
+.detail-original label,
+.review-original label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+.detail-original p,
+.review-original p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 700;
+}
+.detail-review {
+  border: 1px solid var(--clay);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin: 0 0 18px;
+}
+.review-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.review-reason {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--clay);
+}
+/* The classifier's one-line justification, under the department in the detail
+   panel header. Muted and tagged, so staff never read it as a clerk's note. */
+.detail-reasoning {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+/* Work-order preview: the clerk reviews and edits the generated email here
+   before anything is sent. Visually separated from the form controls above it
+   so it reads as a draft, not as another field. */
+.wo-preview {
+  margin-top: 12px;
+  padding: 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--stone);
+}
+.wo-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+/* Generation failed and the fixed template is showing instead — the clerk must
+   not mistake it for AI-written text. */
+.wo-fallback {
+  margin-bottom: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--amber);
+  border-radius: var(--radius-s);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.wo-sublabel {
+  display: block;
+  margin: 10px 0 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.wo-body {
+  font-family: inherit;
+  line-height: 1.6;
+}
+.wo-actions {
+  margin-top: 12px;
+}
+.wo-actions .btn-ghost {
+  flex: none;
+}
+/* Clarification request, under the accept/reject actions in the flagged-report
+   review block. Secondary to them: asking the citizen is an alternative to
+   deciding now, not a third verdict. */
+.clar-request {
+  margin-top: 14px;
+}
+.clar-request .loc-row .btn-ghost {
+  flex: none;
+}
+/* The report carries no contact address, so there is nowhere to send a
+   clarification — said plainly where the button would otherwise be. */
+.clar-none {
+  margin: 14px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.ai-tag {
+  margin-right: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+.review-actions .review-reject {
+  flex: none;
 }
 .detail-grid {
   display: grid;

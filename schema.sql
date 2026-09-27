@@ -11,7 +11,7 @@ create table if not exists public.reports (
   category text,
   urgency text,
   status text not null default 'submitted'
-    check (status in ('submitted', 'in_progress', 'resolved', 'reopened', 'confirmed_resolved')),
+    check (status in ('submitted', 'in_progress', 'resolved', 'reopened', 'confirmed_resolved', 'rejected')),
   area text,
   latitude double precision,
   longitude double precision,
@@ -181,6 +181,43 @@ alter table public.reports add column if not exists quality_flagged boolean defa
 alter table public.reports add column if not exists flag_reason text;
 alter table public.reports add column if not exists quality_confidence double precision;
 
+-- ---------- quality review from /admin ----------
+-- A clerk reviewing a flagged report either accepts it (quality_flagged goes
+-- false and the AI pipeline runs for the first time) or rejects it. A rejected
+-- report keeps its flag_reason for the record but clears quality_flagged: the
+-- flag means "awaiting a quality decision", and rejecting is a decision.
+alter table public.reports drop constraint if exists reports_status_check;
+alter table public.reports add constraint reports_status_check
+  check (status in ('submitted', 'in_progress', 'resolved', 'reopened', 'confirmed_resolved', 'rejected'));
+
+-- /admin reads the flag state and the normalized text with the anon key — both
+-- its list fetch and its realtime channel use it, and Postgres requires SELECT
+-- on a column even just to filter on it (the Silence Map and Chronic Issues
+-- queries filter flagged rows out). flag_reason and quality_confidence stay
+-- service-role-only: those are clerk-facing notes, read per-report through
+-- /api/admin/reports/[id], which goes via supabaseAdmin.
+grant select (quality_flagged, normalized_description) on public.reports to anon, authenticated;
+
+alter publication supabase_realtime set table public.reports (
+  id, ticket_code, description, category, urgency, status, area,
+  latitude, longitude, photo_url, duplicate_of, created_at, updated_at,
+  quality_flagged, normalized_description
+);
+
+-- ---------- AI photo analysis + classifier reasoning ----------
+-- vision_analysis is the raw JSON from analyzePhoto() (lib/vision.ts), written
+-- after the quality gate passes and before classification. reasoning is the
+-- classifier's one-sentence Albanian justification for the department and
+-- urgency it chose, shown on the /admin detail panel labeled as AI-generated.
+--
+-- Both stay out of the anon/authenticated grant and the realtime publication:
+-- they are staff-facing, read per-report through /api/admin/reports/[id] via
+-- supabaseAdmin, the same way flag_reason is. Adding them to PUBLIC_REPORT_COLUMNS
+-- (lib/types.ts) without also granting them here would break every anon list
+-- fetch with "permission denied for table reports".
+alter table public.reports add column if not exists vision_analysis jsonb;
+alter table public.reports add column if not exists reasoning text;
+
 -- ---------- departments: contact routing ----------
 -- One row per municipal department (see CATEGORIES in lib/types.ts for the
 -- matching category ids/labels). `contact_email` is filled in by staff from
@@ -246,3 +283,14 @@ values
   ('Drejtoria e Kadastrit dhe Gjeodezisë', 'kadastri', null),
   ('Drejtoria e Inspektoratit', 'inspektorati', null)
 on conflict (category) do nothing;
+
+-- ---------- clarification requests ----------
+-- Stamped when a clerk sends the AI-drafted clarification email to the citizen
+-- behind a quality-flagged report (/api/admin/reports/[id]/clarification). The
+-- /admin panel shows it so a second clerk does not ask the same citizen twice.
+-- NULL means no clarification has been requested.
+--
+-- Staff-facing like flag_reason, so it stays out of the anon/authenticated
+-- grant and the realtime publication: it is read per-report through
+-- /api/admin/reports/[id], which goes via supabaseAdmin.
+alter table public.reports add column if not exists clarification_sent_at timestamptz;

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx scripts/seed-reports.ts",
-    "backfill-areas": "tsx scripts/backfill-areas.ts"
+    "backfill-areas": "tsx scripts/backfill-areas.ts",
+    "backfill-vision": "tsx scripts/backfill-vision.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",

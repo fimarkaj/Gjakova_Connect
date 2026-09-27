@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { classifyReport, findDuplicates, AIBudgetExceededError } from "@/lib/ai";
 import { assessReport, type QualityAssessment } from "@/lib/quality";
+import { analyzePhoto } from "@/lib/vision";
 import { resolveArea } from "@/lib/areas";
 
 export async function POST(req: NextRequest) {
@@ -83,12 +84,37 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Vision runs after the gate and before classification, so an unusable
+  // report never reaches it and the classifier gets to see what the photo
+  // shows. analyzePhoto never throws — a null photo, an unreachable image or a
+  // failed call returns null and the pipeline continues text-only.
+  const visionAnalysis = await analyzePhoto(row.photo_url);
+
+  if (visionAnalysis) {
+    const { error: visionError } = await supabaseAdmin
+      .from("reports")
+      .update({ vision_analysis: visionAnalysis })
+      .eq("id", row.id);
+
+    // Stored in its own update so the analysis survives a later
+    // classification failure, matching how the quality verdict is written.
+    if (visionError) console.error("reports POST: vision update failed", visionError);
+  }
+
   // The report already exists at this point — if classification or duplicate
   // detection fails, the submission still succeeds, just without enrichment.
   try {
     const [classification, duplicate] = await Promise.all([
-      classifyReport(description),
-      findDuplicates({ id: row.id, description, latitude, longitude, area: row.area }),
+      classifyReport(description, visionAnalysis),
+      findDuplicates({
+        id: row.id,
+        description,
+        normalizedDescription: row.normalized_description,
+        visionAnalysis,
+        latitude,
+        longitude,
+        area: row.area,
+      }),
     ]);
 
     const { data: updated, error: updateError } = await supabaseAdmin
@@ -96,6 +122,7 @@ export async function POST(req: NextRequest) {
       .update({
         category: classification.category,
         urgency: classification.urgency,
+        reasoning: classification.reasoning,
         duplicate_of: duplicate?.reportId ?? null,
       })
       .eq("id", row.id)

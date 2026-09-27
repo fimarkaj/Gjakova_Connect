@@ -18,9 +18,13 @@ export default function ChronicIssuesClient() {
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
+    // Quality-flagged and rejected reports never form or join a cluster —
+    // a rejected report is not evidence of a recurring problem.
     const { data, error } = await supabase
       .from("reports")
-      .select("id, ticket_code, area, category, latitude, longitude, created_at");
+      .select("id, ticket_code, area, category, latitude, longitude, created_at")
+      .not("quality_flagged", "is", true)
+      .neq("status", "rejected");
     if (error || !data) {
       setLoadError("Të dhënat nuk u ngarkuan.");
     } else {

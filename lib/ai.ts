@@ -2,6 +2,7 @@ import "server-only";
 import OpenAI from "openai";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { CATEGORIES } from "@/lib/types";
+import type { VisionAnalysis } from "@/lib/vision";
 
 export const openai = new OpenAI({ apiKey: process.env.AI_API_KEY, baseURL: process.env.AI_BASE_URL });
 
@@ -34,11 +35,20 @@ export type ClassificationResult = {
   category: Category;
   urgency: Urgency;
   confidence: number;
+  // One Albanian sentence explaining the choice, shown to staff on the /admin
+  // detail panel labeled as AI-generated. Stored in reports.reasoning.
+  reasoning: string;
 };
 
 export type NewReportForDupCheck = {
   id: string;
   description: string;
+  // The quality gate's restatement. Preferred over the raw description for the
+  // embedding; null when the gate was unavailable for this report.
+  normalizedDescription?: string | null;
+  // Photo analysis, folded into the embedding so two reports about the same
+  // thing match on what their photos show, not just on wording.
+  visionAnalysis?: VisionAnalysis | null;
   latitude: number | null;
   longitude: number | null;
   area: string | null;
@@ -58,6 +68,10 @@ const NEARBY_RADIUS_METERS = 250;
 const DUPLICATE_SIMILARITY_THRESHOLD = 0.85;
 const LOOKBACK_DAYS = 90;
 export const MAX_DESCRIPTION_CHARS = 500;
+// The duplicate-detection embedding covers the normalized description plus the
+// photo's visual summary and object list, so it needs more room than a single
+// description. Only the embedding input uses this; chat prompts stay at 500.
+const MAX_EMBED_CHARS = 1500;
 
 type OpenAIUsage = { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | null | undefined;
 
@@ -68,28 +82,46 @@ export function logUsage(label: string, usage: OpenAIUsage) {
   );
 }
 
+export const CLASSIFY_SYSTEM_PROMPT =
+  "You classify municipal issue reports submitted by residents of Gjakova, Kosovo. " +
+  "Descriptions are written in Albanian. Pick the single best-fitting category " +
+  "(the municipal department responsible), estimate urgency for public safety/services, " +
+  "and give your confidence in the category choice.\n\n" +
+  "A photo analysis may accompany the description. When the photo and the written " +
+  "description conflict, trust the photo and say so in reasoning. Never invent details " +
+  "that are absent from both the description and the photo analysis.\n\n" +
+  "reasoning is one sentence in Albanian, maximum 30 words, explaining why you chose this " +
+  "department and urgency.\n\nCategories:\n" +
+  CATEGORIES.map((c) => `- ${c.id} (${c.label}): ${c.scope}`).join("\n");
+
 /**
  * Classifies a report's description into one of the app's category ids and
- * an urgency level with a strict JSON schema response.
+ * an urgency level with a strict JSON schema response. When a photo analysis
+ * is supplied (lib/vision.ts), what the image shows goes to the model
+ * alongside the text and outweighs it where the two conflict.
  */
-export async function classifyReport(description: string): Promise<ClassificationResult> {
+export async function classifyReport(
+  description: string,
+  visionAnalysis?: VisionAnalysis | null
+): Promise<ClassificationResult> {
   const truncated = description.slice(0, MAX_DESCRIPTION_CHARS);
+
+  let userMessage = `Report description: "${truncated}"`;
+  if (visionAnalysis) {
+    userMessage +=
+      "\n\nPhoto analysis:\n" +
+      `- visible objects: ${visionAnalysis.objects.join(", ") || "none listed"}\n` +
+      `- condition: ${visionAnalysis.condition}\n` +
+      `- visual summary: ${visionAnalysis.visual_summary}`;
+  }
 
   let completion;
   try {
     completion = await openai.chat.completions.create({
       model: AI_MODEL,
       messages: [
-        {
-          role: "system",
-          content:
-            "You classify municipal issue reports submitted by residents of Gjakova, Kosovo. " +
-            "Descriptions are written in Albanian. Pick the single best-fitting category " +
-            "(the municipal department responsible), estimate urgency for public safety/services, " +
-            "and give your confidence in the category choice.\n\nCategories:\n" +
-            CATEGORIES.map((c) => `- ${c.id} (${c.label}): ${c.scope}`).join("\n"),
-        },
-        { role: "user", content: `Report description: "${truncated}"` },
+        { role: "system", content: CLASSIFY_SYSTEM_PROMPT },
+        { role: "user", content: userMessage },
       ],
       response_format: {
         type: "json_schema",
@@ -102,8 +134,9 @@ export async function classifyReport(description: string): Promise<Classificatio
               category: { type: "string", enum: CATEGORY_IDS },
               urgency: { type: "string", enum: ["low", "medium", "high"] },
               confidence: { type: "number", minimum: 0, maximum: 1 },
+              reasoning: { type: "string" },
             },
-            required: ["category", "urgency", "confidence"],
+            required: ["category", "urgency", "confidence", "reasoning"],
             additionalProperties: false,
           },
         },
@@ -123,8 +156,8 @@ export async function classifyReport(description: string): Promise<Classificatio
   return parsed;
 }
 
-async function embedDescription(description: string): Promise<number[]> {
-  const truncated = description.slice(0, MAX_DESCRIPTION_CHARS);
+async function embedText(text: string): Promise<number[]> {
+  const truncated = text.slice(0, MAX_EMBED_CHARS);
 
   let res;
   try {
@@ -137,8 +170,27 @@ async function embedDescription(description: string): Promise<number[]> {
     throw err;
   }
 
-  logUsage("embedDescription", res.usage);
+  logUsage("embedText", res.usage);
   return res.data[0].embedding;
+}
+
+/**
+ * The text duplicate detection compares. The quality gate's normalized
+ * restatement is a cleaner signal than the citizen's raw wording, and the
+ * photo's visual summary and object list let two reports about the same thing
+ * match on what their photos show rather than on phrasing alone. Falls back to
+ * the raw description when the gate was unavailable.
+ */
+export function buildEmbedInput(report: NewReportForDupCheck): string {
+  const parts = [report.normalizedDescription?.trim() || report.description];
+
+  const vision = report.visionAnalysis;
+  if (vision) {
+    if (vision.visual_summary) parts.push(vision.visual_summary);
+    if (vision.objects.length) parts.push(vision.objects.join(", "));
+  }
+
+  return parts.join("\n");
 }
 
 function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -152,7 +204,7 @@ function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number)
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-function cosineSimilarity(a: number[], b: number[]): number {
+export function cosineSimilarity(a: number[], b: number[]): number {
   let dot = 0;
   let normA = 0;
   let normB = 0;
@@ -164,7 +216,7 @@ function cosineSimilarity(a: number[], b: number[]): number {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-function parseEmbedding(value: unknown): number[] | null {
+export function parseEmbedding(value: unknown): number[] | null {
   if (Array.isArray(value)) return value as number[];
   if (typeof value === "string") {
     try {
@@ -177,7 +229,8 @@ function parseEmbedding(value: unknown): number[] | null {
 }
 
 /**
- * Embeds the new report's description, stores it in report_embeddings, and
+ * Embeds the new report's normalized description together with its photo's
+ * visual summary and objects, stores the vector in report_embeddings, and
  * checks it against open reports (submitted/in_progress) from the last 90
  * days. Candidates are scoped to the same `area` as the new report; a
  * candidate missing `area` (an old row from before that column was
@@ -185,7 +238,7 @@ function parseEmbedding(value: unknown): number[] | null {
  * closest match above the similarity threshold, or null if none.
  */
 export async function findDuplicates(newReport: NewReportForDupCheck): Promise<DuplicateMatch | null> {
-  const embedding = await embedDescription(newReport.description);
+  const embedding = await embedText(buildEmbedInput(newReport));
 
   const { error: embedInsertError } = await supabaseAdmin
     .from("report_embeddings")

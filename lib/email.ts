@@ -77,16 +77,7 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-/**
- * Sends a formatted copy of a report to a department's contact email, with
- * the photo shown inline and (if provided) attached as a file. Unlike
- * sendReportStatusEmail, this throws on failure — the caller (the manual
- * "Send to Department" route) needs to distinguish success from failure to
- * decide whether to write the report_department_sends audit row and what
- * error to surface to the clerk who clicked the button.
- */
-export async function sendDepartmentReportEmail(params: {
-  to: string;
+export type DepartmentEmailParams = {
   departmentName: string;
   ticketCode: string;
   categoryLabel: string;
@@ -94,14 +85,19 @@ export async function sendDepartmentReportEmail(params: {
   description: string;
   mapsUrl: string | null;
   photoUrl: string | null;
-  photoAttachment: { filename: string; content: Buffer; contentType: string } | null;
-}): Promise<{ sent: boolean; demo: boolean }> {
-  const { to, departmentName, ticketCode, categoryLabel, area, description, mapsUrl, photoUrl, photoAttachment } =
-    params;
+};
+
+/**
+ * The fixed template. Extracted so the work-order generator's fallback path
+ * (/api/admin/reports/[id]/send-department/generate) can hand the clerk exactly
+ * the text that would otherwise have been sent, rather than re-deriving it.
+ */
+export function buildDepartmentEmail(params: DepartmentEmailParams): { subject: string; body: string } {
+  const { departmentName, ticketCode, categoryLabel, area, description, mapsUrl } = params;
 
   const subject = `[Gjakova Connect] ${ticketCode} — ${categoryLabel} — ${area || "Pa zonë"}`;
 
-  const textLines = [
+  const lines = [
     `Raportim i ri për ${departmentName}.`,
     ``,
     `Kodi: ${ticketCode}`,
@@ -111,17 +107,42 @@ export async function sendDepartmentReportEmail(params: {
     `Përshkrimi:`,
     description,
   ];
-  if (mapsUrl) textLines.push(``, `Vendndodhja: ${mapsUrl}`);
-  const text = textLines.join("\n");
+  if (mapsUrl) lines.push(``, `Vendndodhja: ${mapsUrl}`);
 
+  return { subject, body: lines.join("\n") };
+}
+
+/**
+ * Sends a formatted copy of a report to a department's contact email, with
+ * the photo shown inline and (if provided) attached as a file. Unlike
+ * sendReportStatusEmail, this throws on failure — the caller (the manual
+ * "Send to Department" route) needs to distinguish success from failure to
+ * decide whether to write the report_department_sends audit row and what
+ * error to surface to the clerk who clicked the button.
+ */
+export async function sendDepartmentReportEmail(
+  params: DepartmentEmailParams & {
+    to: string;
+    photoAttachment: { filename: string; content: Buffer; contentType: string } | null;
+    // The clerk-approved work order, as edited in the /admin preview. When
+    // absent the fixed template is rendered instead.
+    subject?: string;
+    body?: string;
+  }
+): Promise<{ sent: boolean; demo: boolean }> {
+  const { to, mapsUrl, photoUrl, photoAttachment } = params;
+
+  const template = buildDepartmentEmail(params);
+  const subject = params.subject?.trim() || template.subject;
+  const text = params.body?.trim() || template.body;
+
+  // The body is plain text either way — the work-order prompt forbids markdown
+  // — so the HTML part is the same text escaped, with the photo and map link
+  // appended as before.
   const htmlParts = [
-    `<p>Raportim i ri për <strong>${escapeHtml(departmentName)}</strong>.</p>`,
-    `<p><strong>Kodi:</strong> ${escapeHtml(ticketCode)}<br/>` +
-      `<strong>Kategoria:</strong> ${escapeHtml(categoryLabel)}<br/>` +
-      `<strong>Zona:</strong> ${escapeHtml(area || "Pa zonë")}</p>`,
-    `<p><strong>Përshkrimi:</strong><br/>${escapeHtml(description).replace(/\n/g, "<br/>")}</p>`,
+    `<p style="white-space:pre-wrap;">${escapeHtml(text)}</p>`,
   ];
-  if (mapsUrl) {
+  if (mapsUrl && !text.includes(mapsUrl)) {
     htmlParts.push(`<p><a href="${mapsUrl}">Shiko vendndodhjen në hartë</a></p>`);
   }
   if (photoUrl) {
@@ -144,6 +165,40 @@ export async function sendDepartmentReportEmail(params: {
     text,
     html,
     attachments: photoAttachment ? [photoAttachment] : undefined,
+  });
+  return { sent: true, demo: false };
+}
+
+/**
+ * Sends the clerk-approved clarification email to the citizen who filed a
+ * quality-flagged report. Like sendDepartmentReportEmail, and unlike
+ * sendReportStatusEmail, this throws on failure: the caller must know whether
+ * the mail actually left before it stamps clarification_sent_at on the report.
+ *
+ * Plain text only — the clarification prompt forbids markdown, and nothing is
+ * appended to what the clerk read in the preview.
+ */
+export async function sendClarificationEmail(params: {
+  to: string;
+  subject: string;
+  body: string;
+}): Promise<{ sent: boolean; demo: boolean }> {
+  const { to, subject, body } = params;
+
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.log(
+      `[DEMO MODE — email not actually sent, missing GMAIL_USER/GMAIL_APP_PASSWORD] to=${to} subject="${subject}"\n${body}`
+    );
+    return { sent: false, demo: true };
+  }
+
+  await transporter.sendMail({
+    from: `Gjakova Connect <${process.env.GMAIL_USER}>`,
+    to,
+    subject,
+    text: body,
+    html: `<p style="white-space:pre-wrap;">${escapeHtml(body)}</p>`,
   });
   return { sent: true, demo: false };
 }

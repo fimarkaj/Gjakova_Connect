@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { addMyTicket } from "@/lib/my-tickets";
 import Toast from "@/components/Toast";
 
@@ -31,6 +32,32 @@ function UploadIcon() {
   );
 }
 
+function CheckCircleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8.5 12.2l2.4 2.4 4.6-4.8" />
+    </svg>
+  );
+}
+
+function CopyIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="9" width="11" height="11" rx="2" />
+      <path d="M15 5.5A1.5 1.5 0 0013.5 4H6a2 2 0 00-2 2v7.5A1.5 1.5 0 005.5 15" />
+    </svg>
+  );
+}
+
+function CopiedIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  );
+}
+
 export default function RaportoForm() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -46,6 +73,7 @@ export default function RaportoForm() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "" });
   const [confirmation, setConfirmation] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -72,6 +100,34 @@ export default function RaportoForm() {
     setPhotoSource(null);
     if (cameraInputRef.current) cameraInputRef.current.value = "";
     if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function resetForm() {
+    resetPhoto();
+    setDescription("");
+    setNotifyEmail("");
+    setPin(null);
+    setFlyTo(null);
+    setGeoStatus("");
+  }
+
+  async function copyTicketCode() {
+    if (!confirmation) return;
+    try {
+      await navigator.clipboard.writeText(confirmation);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2400);
+    } catch {
+      // Clipboard blocked (insecure context, denied permission) — the code
+      // stays on screen, so the citizen can still write it down.
+      showToast("Kopjimi nuk u lejua — ruaje kodin manualisht.");
+    }
+  }
+
+  function startNewReport() {
+    resetForm();
+    setConfirmation(null);
+    setCopied(false);
   }
 
   function handleMapSelect(pos: LatLng) {
@@ -138,20 +194,62 @@ export default function RaportoForm() {
 
       addMyTicket(data.report.ticket_code);
       showToast("Raportimi u dërgua — statusi tani është “Pranuar”.");
+      setCopied(false);
       setConfirmation(data.report.ticket_code);
-
-      resetPhoto();
-      setDescription("");
-      setNotifyEmail("");
-      setPin(null);
-      setFlyTo(null);
-      setGeoStatus("");
+      resetForm();
     } catch (err) {
       console.error(err);
       showToast("Diçka shkoi keq — provo përsëri.");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (confirmation) {
+    return (
+      <section className="report" id="raporto">
+        <div className="wrap">
+          <div className="confirm-card">
+            <div className="confirm-icon" aria-hidden="true">
+              <CheckCircleIcon />
+            </div>
+            <h2 className="confirm-title">Raportimi u dërgua</h2>
+            <p className="confirm-label">Numri i biletës</p>
+            <button
+              type="button"
+              className="confirm-code"
+              onClick={copyTicketCode}
+              aria-label={`Kopjo numrin e biletës ${confirmation}`}
+            >
+              <span className="confirm-code-value">{confirmation}</span>
+              <span className="confirm-code-copy">
+                {copied ? <CopiedIcon /> : <CopyIcon />}
+                {copied ? "U kopjua" : "Kopjo kodin"}
+              </span>
+            </button>
+            <p className="confirm-note">
+              Ruaje këtë kod — me të mund të gjurmosh statusin e raportimit tënd në çdo kohë.
+            </p>
+            <div className="confirm-actions">
+              <Link
+                className="btn-submit"
+                href={`/raportimet-e-mia?ticket=${encodeURIComponent(confirmation)}`}
+              >
+                Gjurmo raportimin
+              </Link>
+              <button type="button" className="btn-ghost" onClick={startNewReport}>
+                Raporto një problem tjetër
+              </button>
+            </div>
+            <Link className="confirm-home" href="/">
+              Kthehu në faqen kryesore
+            </Link>
+          </div>
+        </div>
+
+        <Toast message={toast.message} show={toast.show} />
+      </section>
+    );
   }
 
   return (
@@ -164,19 +262,6 @@ export default function RaportoForm() {
             të detyrueshme.
           </p>
         </div>
-
-        {confirmation && (
-          <div className="auto-cat-note" style={{ marginBottom: 22, background: "var(--olive-bg)" }}>
-            <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ stroke: "var(--olive)" }}>
-              <path d="M9 12l2 2 4-4" />
-              <circle cx="12" cy="12" r="9" />
-            </svg>
-            <span>
-              Raportimi u regjistrua me kodin <strong>{confirmation}</strong>. Ruaje këtë kod
-              për ta ndjekur statusin më vonë.
-            </span>
-          </div>
-        )}
 
         <div className="report-grid">
           <div className="report-photo">

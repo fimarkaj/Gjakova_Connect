@@ -3,7 +3,8 @@ export type ReportStatus =
   | "in_progress"
   | "resolved"
   | "reopened"
-  | "confirmed_resolved";
+  | "confirmed_resolved"
+  | "rejected";
 
 export type Report = {
   id: string;
@@ -18,6 +19,8 @@ export type Report = {
   photo_url: string | null;
   duplicate_of: string | null;
   notify_email: string | null;
+  quality_flagged: boolean | null;
+  normalized_description: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -27,7 +30,7 @@ export type Report = {
 // Column-level privileges in schema.sql enforce this at the database too, so
 // this list must stay in sync with that migration.
 export const PUBLIC_REPORT_COLUMNS =
-  "id, ticket_code, description, category, urgency, status, area, latitude, longitude, photo_url, duplicate_of, created_at, updated_at";
+  "id, ticket_code, description, category, urgency, status, area, latitude, longitude, photo_url, duplicate_of, quality_flagged, normalized_description, created_at, updated_at";
 
 // Mirrors the municipality's departments. `scope` is fed to the AI classifier
 // (lib/ai.ts) so it knows what each department handles.
@@ -72,10 +75,13 @@ export const STATUS_LABELS: Record<ReportStatus, { label: string; cls: string }>
   resolved: { label: "Zgjidhur", cls: "status-resolved" },
   reopened: { label: "Rihapur", cls: "status-progress" },
   confirmed_resolved: { label: "Konfirmuar e zgjidhur", cls: "status-resolved" },
+  rejected: { label: "Refuzuar", cls: "status-rejected" },
 };
 
 // Statuses staff can set from /admin. "reopened" / "confirmed_resolved" are
-// set by citizens via /api/reports/confirm, not by staff.
+// set by citizens via /api/reports/confirm, not by staff. "rejected" is set
+// only by rejecting a quality-flagged report (/api/admin/reports/[id]/quality),
+// so it stays out of the general status control.
 export const STAFF_STATUSES: ReportStatus[] = ["submitted", "in_progress", "resolved"];
 
 export const URGENCY_LABELS: Record<string, { label: string; cls: string; rank: number }> = {

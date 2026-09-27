@@ -12,6 +12,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const body = await req.json().catch(() => null);
   const departmentId: string | undefined = body?.departmentId;
+  // The work order the clerk reviewed and edited in /admin (see ./generate).
+  // Absent means send the fixed template, which is what the flow did before
+  // work orders existed.
+  const subject: string | undefined = body?.subject?.trim() || undefined;
+  const emailBody: string | undefined = body?.body?.trim() || undefined;
 
   if (!departmentId) {
     return NextResponse.json({ error: "Departamenti mungon." }, { status: 400 });
@@ -67,6 +72,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       mapsUrl,
       photoUrl: report.photo_url,
       photoAttachment,
+      subject,
+      body: emailBody,
     });
   } catch (err) {
     console.error("send-department: send failed", err);

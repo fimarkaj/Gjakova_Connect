@@ -21,7 +21,16 @@ export default function SilenceMapClient() {
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
-    const { data, error } = await supabase.from("reports").select("area");
+    // Quality-flagged and rejected reports are left out entirely — they must
+    // not count toward an area, nor toward the total every area's expected
+    // share is derived from. Otherwise a single troll filing repeatedly in one
+    // area would inflate the denominator and drag every other area's ratio down.
+    // `not is true` (rather than eq false) also covers rows predating the column.
+    const { data, error } = await supabase
+      .from("reports")
+      .select("area")
+      .not("quality_flagged", "is", true)
+      .neq("status", "rejected");
     if (error || !data) {
       setLoadError("Të dhënat nuk u ngarkuan.");
     } else {
